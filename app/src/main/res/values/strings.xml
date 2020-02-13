@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Crypfolio</string>
+    <string name="tab_markets_title">Markets</string>
+    <string name="tab_portfolio_title">Portfolio</string>
+    <string name="tab_settings_title">Settings</string>
+    <string name="tab_marketview_title">Market View</string>
+    <string name="tab_watchlist_title">Watchlist</string>
 </resources>

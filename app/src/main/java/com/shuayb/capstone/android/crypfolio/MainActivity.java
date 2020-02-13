@@ -1,6 +1,7 @@
 package com.shuayb.capstone.android.crypfolio;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,8 +10,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.tabs.TabLayout;
-import com.shuayb.capstone.android.crypfolio.Fragments.MarketsFragment;
+import com.shuayb.capstone.android.crypfolio.Fragments.MarketviewFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.PortfolioFragment;
+import com.shuayb.capstone.android.crypfolio.Fragments.WatchlistFragment;
 import com.shuayb.capstone.android.crypfolio.databinding.ActivityMainBinding;
 
 
@@ -29,33 +31,69 @@ public class MainActivity extends AppCompatActivity {
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
         //On initial startup, display the markets fragment
-        Fragment fragment = new MarketsFragment();
+        Fragment fragment = new MarketviewFragment();
         setFragment(fragment);
 
-        setupTabs();
-
+        setupMainTabs();
+        setupTopTabs();
     }
 
     //Method to set up the behaviour of the tabs
     //The tabs determine which fragment will be displayed
     //Except for settings, which launches a new activity
-    private void setupTabs() {
-        mBinding.tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+    private void setupMainTabs() {
+        mBinding.tabLayoutMain.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
                 Fragment fragment;
 
-                switch (mBinding.tabLayout.getSelectedTabPosition()) {
-                    case 0:
-                        fragment = new MarketsFragment();
+                switch (mBinding.tabLayoutMain.getSelectedTabPosition()) {
+                    case 0:     //Markets tab
+                        mBinding.tabLayoutTop.setVisibility(View.VISIBLE);
+                        if (mBinding.tabLayoutTop.getSelectedTabPosition() == 0) { //Load marketview fragment
+                            fragment = new MarketviewFragment();
+                        } else { //Load watchlist fragment
+                            fragment = new WatchlistFragment();
+                        }
                         setFragment(fragment);
                         break;
-                    case 1:
+                    case 1:     //Portfolio tab
+                        mBinding.tabLayoutTop.setVisibility(View.GONE);
                         fragment = new PortfolioFragment();
                         setFragment(fragment);
                         break;
-                    case 2:
+                    case 2:     //Settings tab
                         Toast.makeText(getApplicationContext(), "Selected Settings tab!", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                //Nothing to do here
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+                //Nothing to do here
+            }
+        });
+    }
+
+
+    private void setupTopTabs() {
+        mBinding.tabLayoutTop.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                Fragment fragment;
+                switch (mBinding.tabLayoutTop.getSelectedTabPosition()) {
+                    case 0:
+                        fragment = new MarketviewFragment();
+                        setFragment(fragment);
+                        break;
+                    case 1:
+                        fragment = new WatchlistFragment();
+                        setFragment(fragment);
                         break;
                 }
             }
