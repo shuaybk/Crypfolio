@@ -18,7 +18,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.shuayb.capstone.android.crypfolio.Adapters.MarketRecyclerViewAdapter;
+import com.shuayb.capstone.android.crypfolio.DataUtils.JsonUtils;
 import com.shuayb.capstone.android.crypfolio.DataUtils.NetworkUtils;
+import com.shuayb.capstone.android.crypfolio.POJOs.Crypto;
 import com.shuayb.capstone.android.crypfolio.databinding.MarketviewFragmentBinding;
 
 import java.util.ArrayList;
@@ -27,13 +29,8 @@ public class MarketviewFragment extends Fragment {
     private static final String TAG = "MarketviewFragment";
 
     private MarketviewFragmentBinding mBinding;
-    private String jsonResponse;
 
-    ArrayList<String> tempCoins = new ArrayList<String>() {{
-        add("Bitcoin");
-        add("Ethereum");
-        add("Ripple");
-    }};
+    ArrayList<Crypto> cryptos;
 
     @Nullable
     @Override
@@ -43,13 +40,11 @@ public class MarketviewFragment extends Fragment {
 
         fetchJsonData();
 
-        initRecyclerView(mBinding.getRoot());
-
         return mBinding.getRoot();
     }
 
     private void initRecyclerView(View view) {
-        MarketRecyclerViewAdapter adapter = new MarketRecyclerViewAdapter(getContext(), tempCoins);
+        MarketRecyclerViewAdapter adapter = new MarketRecyclerViewAdapter(getContext(), cryptos);
         mBinding.recyclerView.setAdapter(adapter);
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
@@ -62,8 +57,9 @@ public class MarketviewFragment extends Fragment {
                 NetworkUtils.getUrlForMarketviewData(), new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                jsonResponse = response;
                 Log.d(TAG, "onResponse got this data: " + response);
+                cryptos = JsonUtils.convertJsonToCryptoList(response);
+                initRecyclerView(mBinding.getRoot());
             }
         }, new Response.ErrorListener() {
             @Override
