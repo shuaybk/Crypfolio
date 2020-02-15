@@ -1,4 +1,4 @@
-package com.shuayb.capstone.android.crypfolio.DataUtils;
+package com.shuayb.capstone.android.crypfolio.CustomAdapters;
 
 import android.util.Log;
 

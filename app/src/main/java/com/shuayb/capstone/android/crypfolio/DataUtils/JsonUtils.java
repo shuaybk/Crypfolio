@@ -2,22 +2,13 @@ package com.shuayb.capstone.android.crypfolio.DataUtils;
 
 import android.util.Log;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
-import com.shuayb.capstone.android.crypfolio.MainActivity;
+import com.shuayb.capstone.android.crypfolio.CustomAdapters.GsonCustomDeserializer;
 import com.shuayb.capstone.android.crypfolio.POJOs.Crypto;
 
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 
 public class JsonUtils {

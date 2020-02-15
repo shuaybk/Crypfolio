@@ -8,8 +8,7 @@
     android:layout_marginBottom="2dp"
     android:paddingTop="20dp"
     android:paddingBottom="20dp"
-    android:background="@color/lightGrey"
-    android:id="@+id/parent_layout">
+    android:background="@color/lightGrey">
 
     <ImageView
         android:id="@+id/logo_image"

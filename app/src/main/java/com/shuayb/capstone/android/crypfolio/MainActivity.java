@@ -5,18 +5,21 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
 import com.google.android.material.tabs.TabLayout;
+import com.shuayb.capstone.android.crypfolio.CustomAdapters.MarketRecyclerViewAdapter;
 import com.shuayb.capstone.android.crypfolio.Fragments.MarketviewFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.PortfolioFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.WatchlistFragment;
 import com.shuayb.capstone.android.crypfolio.databinding.ActivityMainBinding;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity
+        implements MarketRecyclerViewAdapter.MarketItemClickListener {
 
     private static final String TAG = "MainActivity";
     private ActivityMainBinding mBinding;
@@ -123,5 +126,10 @@ public class MainActivity extends AppCompatActivity {
                     .add(R.id.frag_main, fragment)
                     .commit();
         }
+    }
+
+    @Override
+    public void onMarketItemClick(int clickedItemIndex) {
+        Toast.makeText(this, "You clicked on item " + clickedItemIndex, Toast.LENGTH_SHORT).show();
     }
 }

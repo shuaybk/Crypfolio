@@ -17,9 +17,10 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.shuayb.capstone.android.crypfolio.Adapters.MarketRecyclerViewAdapter;
+import com.shuayb.capstone.android.crypfolio.CustomAdapters.MarketRecyclerViewAdapter;
 import com.shuayb.capstone.android.crypfolio.DataUtils.JsonUtils;
 import com.shuayb.capstone.android.crypfolio.DataUtils.NetworkUtils;
+import com.shuayb.capstone.android.crypfolio.MainActivity;
 import com.shuayb.capstone.android.crypfolio.POJOs.Crypto;
 import com.shuayb.capstone.android.crypfolio.databinding.MarketviewFragmentBinding;
 
@@ -44,7 +45,7 @@ public class MarketviewFragment extends Fragment {
     }
 
     private void initRecyclerView(View view) {
-        MarketRecyclerViewAdapter adapter = new MarketRecyclerViewAdapter(getContext(), cryptos);
+        MarketRecyclerViewAdapter adapter = new MarketRecyclerViewAdapter(getContext(), cryptos, (MainActivity)getContext());
         mBinding.recyclerView.setAdapter(adapter);
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }

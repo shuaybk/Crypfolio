@@ -1,18 +1,17 @@
-package com.shuayb.capstone.android.crypfolio.Adapters;
+package com.shuayb.capstone.android.crypfolio.CustomAdapters;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.shuayb.capstone.android.crypfolio.MainActivity;
 import com.shuayb.capstone.android.crypfolio.POJOs.Crypto;
 import com.shuayb.capstone.android.crypfolio.R;
 import com.squareup.picasso.Picasso;
@@ -27,9 +26,17 @@ public class MarketRecyclerViewAdapter
     private ArrayList<Crypto> cryptos;
     private Context mContext;
 
-    public MarketRecyclerViewAdapter(Context mContext, ArrayList<Crypto> cryptos) {
+    private MarketItemClickListener marketItemClickListener;
+
+    public interface MarketItemClickListener {
+        void onMarketItemClick(int clickedItemIndex);
+    }
+
+    public MarketRecyclerViewAdapter(Context mContext, ArrayList<Crypto> cryptos,
+                                     MarketItemClickListener marketItemClickListener) {
         this.mContext = mContext;
         this.cryptos = cryptos;
+        this.marketItemClickListener = marketItemClickListener;
     }
 
     @NonNull
@@ -48,12 +55,6 @@ public class MarketRecyclerViewAdapter
         holder.tvMarketcap.setText("$" + cryptos.get(position).getMarketCap());
         holder.tvPrice.setText("$" + cryptos.get(position).getCurrentPrice());
 
-        holder.parentLayout.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(mContext, "Clicked on item " + position, Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     @Override
@@ -62,13 +63,12 @@ public class MarketRecyclerViewAdapter
     }
 
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         ImageView logoImage;
         TextView tvName;
         TextView tvMarketcap;
         TextView tvPrice;
-        ConstraintLayout parentLayout;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -76,7 +76,14 @@ public class MarketRecyclerViewAdapter
             tvName = itemView.findViewById(R.id.tv_name);
             tvMarketcap = itemView.findViewById(R.id.tv_marketcap);
             tvPrice = itemView.findViewById(R.id.tv_price);
-            parentLayout = itemView.findViewById(R.id.parent_layout);
+
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            int clickedPosition = getAdapterPosition();
+            marketItemClickListener.onMarketItemClick(clickedPosition);
         }
     }
 }
