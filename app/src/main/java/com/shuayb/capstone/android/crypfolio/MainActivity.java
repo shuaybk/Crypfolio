@@ -162,6 +162,9 @@ public class MainActivity extends AppCompatActivity
         mBinding.tabLayoutBottom.setVisibility(View.VISIBLE);
         Fragment fragment = new MarketviewFragment(cryptos);
         setFragment(fragment);
+
+        //Hide the back button if it was shown
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
     private void setPortfolioFragment() {
@@ -169,6 +172,9 @@ public class MainActivity extends AppCompatActivity
         mBinding.tabLayoutBottom.setVisibility(View.VISIBLE);
         Fragment fragment = new PortfolioFragment();
         setFragment(fragment);
+
+        //Hide the back button if it was shown
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
     private void setWatchlistFragment() {
@@ -176,19 +182,33 @@ public class MainActivity extends AppCompatActivity
         mBinding.tabLayoutBottom.setVisibility(View.VISIBLE);
         Fragment fragment = new WatchlistFragment();
         setFragment(fragment);
+
+        //Hide the back button if it was shown
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
-    private void setDetailsFragment() {
+    private void setDetailsFragment(Crypto crypto) {
         mBinding.tabLayoutTop.setVisibility(View.GONE);
         mBinding.tabLayoutBottom.setVisibility(View.GONE);
-        Fragment fragment = new DetailsFragment();
+        Fragment fragment = new DetailsFragment(crypto);
         setFragment(fragment);
+
+        //Enable the back button
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+
+    //Set behavior of actionbar back button
+    //TODO - Make this work for the device back button as well
+    @Override
+    public boolean onSupportNavigateUp(){
+        setMarketviewFragment();
+        return true;
     }
 
     @Override
     public void onMarketItemClick(Crypto crypto) {
         //Display the details tab for the selected crypto
         //Also hide the top and bottom tabs
-        setDetailsFragment();
+        setDetailsFragment(crypto);
     }
 }

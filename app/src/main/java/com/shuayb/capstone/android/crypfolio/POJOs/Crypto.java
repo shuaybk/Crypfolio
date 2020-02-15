@@ -1,5 +1,7 @@
 package com.shuayb.capstone.android.crypfolio.POJOs;
 
+import java.math.BigDecimal;
+
 public class Crypto {
 
     //If any double values are set to -1, that means N/A (determined during parsing)
@@ -168,5 +170,57 @@ public class Crypto {
 
     public void setLastUpdated(String lastUpdated) {
         this.lastUpdated = lastUpdated;
+    }
+
+
+    /////////////////////////////////
+    ///////// More methods //////////
+    /////////////////////////////////
+
+    public String getFormattedMarketcapFull() {
+        StringBuilder str = new StringBuilder("$" + new BigDecimal(marketCap).toPlainString());
+
+        if (str.length() < 6) {
+            return str.toString();
+        } else {
+            //Add a comma every 3 characters starting from the right
+            int counter = 0;
+            for (int i = str.length()-1; i > 1; i--) {
+                if (counter == 2) {
+                    str.insert(i, ",");
+                }
+                counter = (counter + 1) % 3;
+            }
+        }
+        return str.toString();
+    }
+
+    public String getFormattedMarketcapShort() {
+        StringBuilder str = new StringBuilder("$");
+
+        if (marketCap < 1000000) {
+            return getFormattedMarketcapFull();
+        } else {
+            if (marketCap < 1000000000) {  //For the millions range
+                str.append((int) (marketCap / 1000000));
+                str.append(".");
+                int decimalPortion = (int) (marketCap / 10000) - ((int) (marketCap / 1000000) * 100);
+                str.append(decimalPortion);
+                str.append("M");
+            } else if (marketCap < 1000000000000f) {
+                str.append((int) (marketCap / 1000000000));
+                str.append(".");
+                int decimalPortion = (int) (marketCap / 10000000) - ((int) (marketCap / 1000000000) * 100);
+                str.append(decimalPortion);
+                str.append("B");
+            } else {
+                str.append((int) (marketCap / 1000000000000f));
+                str.append(".");
+                int decimalPortion = (int) (marketCap / 10000000000f) - ((int) (marketCap / 1000000000000f) * 100);
+                str.append(decimalPortion);
+                str.append("T");
+            }
+        }
+        return str.toString();
     }
 }
