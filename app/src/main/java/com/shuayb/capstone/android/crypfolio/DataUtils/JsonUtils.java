@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.google.gson.GsonBuilder;
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.GsonCustomDeserializer;
-import com.shuayb.capstone.android.crypfolio.POJOs.Crypto;
+import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 
 import org.json.JSONArray;
 import org.json.JSONException;

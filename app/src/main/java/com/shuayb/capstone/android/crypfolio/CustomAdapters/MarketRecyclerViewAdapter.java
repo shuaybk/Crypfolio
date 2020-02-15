@@ -10,7 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.shuayb.capstone.android.crypfolio.POJOs.Crypto;
+import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.R;
 import com.squareup.picasso.Picasso;
 

@@ -24,7 +24,7 @@ import com.shuayb.capstone.android.crypfolio.Fragments.DetailsFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.MarketviewFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.PortfolioFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.WatchlistFragment;
-import com.shuayb.capstone.android.crypfolio.POJOs.Crypto;
+import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
@@ -201,6 +201,8 @@ public class MainActivity extends AppCompatActivity
     //TODO - Make this work for the device back button as well
     @Override
     public boolean onSupportNavigateUp(){
+        //TODO - Fix so it goes back to watchlist if selected from watchlist
+        mBinding.tabLayoutTop.getTabAt(0).select();
         setMarketviewFragment();
         return true;
     }

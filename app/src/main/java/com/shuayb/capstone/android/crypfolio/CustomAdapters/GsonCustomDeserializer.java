@@ -7,7 +7,7 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.shuayb.capstone.android.crypfolio.POJOs.Crypto;
+import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 
 import java.lang.reflect.Type;
 

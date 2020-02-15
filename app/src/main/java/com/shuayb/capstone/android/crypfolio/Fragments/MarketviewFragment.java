@@ -1,7 +1,6 @@
 package com.shuayb.capstone.android.crypfolio.Fragments;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.MarketRecyclerViewAdapter;
 import com.shuayb.capstone.android.crypfolio.MainActivity;
-import com.shuayb.capstone.android.crypfolio.POJOs.Crypto;
+import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.databinding.MarketviewFragmentBinding;
 
 import java.util.ArrayList;

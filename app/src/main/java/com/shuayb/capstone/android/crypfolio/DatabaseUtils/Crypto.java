@@ -1,11 +1,20 @@
-package com.shuayb.capstone.android.crypfolio.POJOs;
+package com.shuayb.capstone.android.crypfolio.DatabaseUtils;
 
+import androidx.annotation.NonNull;
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+
+import java.io.Serializable;
 import java.math.BigDecimal;
 
+@Entity(tableName = "watchlist")
 public class Crypto {
 
     //If any double values are set to -1, that means N/A (determined during parsing)
 
+    @PrimaryKey
+    @NonNull
     private String id; //Use this to do lookups on the API
     private String name;
     private String symbol;
@@ -177,6 +186,7 @@ public class Crypto {
     ///////// More methods //////////
     /////////////////////////////////
 
+    @Ignore
     public String getFormattedMarketcapFull() {
         StringBuilder str = new StringBuilder("$" + new BigDecimal(marketCap).toPlainString());
 
@@ -195,6 +205,7 @@ public class Crypto {
         return str.toString();
     }
 
+    @Ignore
     public String getFormattedMarketcapShort() {
         StringBuilder str = new StringBuilder("$");
 
