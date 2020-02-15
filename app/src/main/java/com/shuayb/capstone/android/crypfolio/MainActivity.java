@@ -20,6 +20,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.MarketRecyclerViewAdapter;
 import com.shuayb.capstone.android.crypfolio.DataUtils.JsonUtils;
 import com.shuayb.capstone.android.crypfolio.DataUtils.NetworkUtils;
+import com.shuayb.capstone.android.crypfolio.Fragments.DetailsFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.MarketviewFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.PortfolioFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.WatchlistFragment;
@@ -62,10 +63,9 @@ public class MainActivity extends AppCompatActivity
                 Log.d(TAG, "onResponse got this data: " + response);
                 cryptos = JsonUtils.convertJsonToCryptoList(response);
 
-                Fragment fragment = new MarketviewFragment(cryptos);
-                setFragment(fragment);
+                setMarketviewFragment();
 
-                setupMainTabs();
+                setupBottomTabs();
                 setupTopTabs();
             }
         }, new Response.ErrorListener() {
@@ -80,26 +80,21 @@ public class MainActivity extends AppCompatActivity
     //Method to set up the behaviour of the tabs
     //The tabs determine which fragment will be displayed
     //Except for settings, which launches a new activity
-    private void setupMainTabs() {
-        mBinding.tabLayoutMain.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+    private void setupBottomTabs() {
+        mBinding.tabLayoutBottom.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                Fragment fragment;
 
-                switch (mBinding.tabLayoutMain.getSelectedTabPosition()) {
+                switch (mBinding.tabLayoutBottom.getSelectedTabPosition()) {
                     case 0:     //Markets tab
-                        mBinding.tabLayoutTop.setVisibility(View.VISIBLE);
-                        if (mBinding.tabLayoutTop.getSelectedTabPosition() == 0) { //Load marketview fragment
-                            fragment = new MarketviewFragment(cryptos);
-                        } else { //Load watchlist fragment
-                            fragment = new WatchlistFragment();
+                        if (mBinding.tabLayoutTop.getSelectedTabPosition() == 0) {
+                            setMarketviewFragment();
+                        } else {
+                            setWatchlistFragment();
                         }
-                        setFragment(fragment);
                         break;
                     case 1:     //Portfolio tab
-                        mBinding.tabLayoutTop.setVisibility(View.GONE);
-                        fragment = new PortfolioFragment();
-                        setFragment(fragment);
+                        setPortfolioFragment();
                         break;
                     case 2:     //Settings tab
                         Toast.makeText(getApplicationContext(), "Selected Settings tab!", Toast.LENGTH_SHORT).show();
@@ -124,15 +119,13 @@ public class MainActivity extends AppCompatActivity
         mBinding.tabLayoutTop.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-                Fragment fragment;
+
                 switch (mBinding.tabLayoutTop.getSelectedTabPosition()) {
-                    case 0:
-                        fragment = new MarketviewFragment(cryptos);
-                        setFragment(fragment);
+                    case 0:  //Market View tab
+                        setMarketviewFragment();
                         break;
-                    case 1:
-                        fragment = new WatchlistFragment();
-                        setFragment(fragment);
+                    case 1:  //Watchlist tab
+                        setWatchlistFragment();
                         break;
                 }
             }
@@ -164,8 +157,38 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private void setMarketviewFragment() {
+        mBinding.tabLayoutTop.setVisibility(View.VISIBLE);
+        mBinding.tabLayoutBottom.setVisibility(View.VISIBLE);
+        Fragment fragment = new MarketviewFragment(cryptos);
+        setFragment(fragment);
+    }
+
+    private void setPortfolioFragment() {
+        mBinding.tabLayoutTop.setVisibility(View.GONE);
+        mBinding.tabLayoutBottom.setVisibility(View.VISIBLE);
+        Fragment fragment = new PortfolioFragment();
+        setFragment(fragment);
+    }
+
+    private void setWatchlistFragment() {
+        mBinding.tabLayoutTop.setVisibility(View.VISIBLE);
+        mBinding.tabLayoutBottom.setVisibility(View.VISIBLE);
+        Fragment fragment = new WatchlistFragment();
+        setFragment(fragment);
+    }
+
+    private void setDetailsFragment() {
+        mBinding.tabLayoutTop.setVisibility(View.GONE);
+        mBinding.tabLayoutBottom.setVisibility(View.GONE);
+        Fragment fragment = new DetailsFragment();
+        setFragment(fragment);
+    }
+
     @Override
     public void onMarketItemClick(Crypto crypto) {
-        Toast.makeText(this, "You clicked on " + crypto.getName(), Toast.LENGTH_SHORT).show();
+        //Display the details tab for the selected crypto
+        //Also hide the top and bottom tabs
+        setDetailsFragment();
     }
 }
