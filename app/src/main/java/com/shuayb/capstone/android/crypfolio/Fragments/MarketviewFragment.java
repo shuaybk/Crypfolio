@@ -11,15 +11,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.MarketRecyclerViewAdapter;
-import com.shuayb.capstone.android.crypfolio.DataUtils.JsonUtils;
-import com.shuayb.capstone.android.crypfolio.DataUtils.NetworkUtils;
 import com.shuayb.capstone.android.crypfolio.MainActivity;
 import com.shuayb.capstone.android.crypfolio.POJOs.Crypto;
 import com.shuayb.capstone.android.crypfolio.databinding.MarketviewFragmentBinding;
@@ -33,13 +26,17 @@ public class MarketviewFragment extends Fragment {
 
     ArrayList<Crypto> cryptos;
 
+    public MarketviewFragment(ArrayList<Crypto> cryptos) {
+        this.cryptos = cryptos;
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         mBinding = MarketviewFragmentBinding.inflate(inflater, container, false);
 
-        fetchJsonData();
+        initRecyclerView(mBinding.getRoot());
 
         return mBinding.getRoot();
     }
@@ -49,27 +46,5 @@ public class MarketviewFragment extends Fragment {
         mBinding.recyclerView.setAdapter(adapter);
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
-
-    //Helper method to start fetching data from Coingecko
-    private void fetchJsonData() {
-        RequestQueue mRequestQueue = Volley.newRequestQueue(getContext());
-
-        StringRequest mStringRequest = new StringRequest(Request.Method.GET,
-                NetworkUtils.getUrlForMarketviewData(), new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "onResponse got this data: " + response);
-                cryptos = JsonUtils.convertJsonToCryptoList(response);
-                initRecyclerView(mBinding.getRoot());
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Volley Error!!!!!!!! " + error.getMessage());
-            }
-        });
-        mRequestQueue.add(mStringRequest);
-    }
-
 
 }

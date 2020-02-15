@@ -1,21 +1,32 @@
 package com.shuayb.capstone.android.crypfolio;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.material.tabs.TabLayout;
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.MarketRecyclerViewAdapter;
+import com.shuayb.capstone.android.crypfolio.DataUtils.JsonUtils;
+import com.shuayb.capstone.android.crypfolio.DataUtils.NetworkUtils;
 import com.shuayb.capstone.android.crypfolio.Fragments.MarketviewFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.PortfolioFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.WatchlistFragment;
+import com.shuayb.capstone.android.crypfolio.POJOs.Crypto;
 import com.shuayb.capstone.android.crypfolio.databinding.ActivityMainBinding;
+
+import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity
@@ -25,6 +36,8 @@ public class MainActivity extends AppCompatActivity
     private ActivityMainBinding mBinding;
     private TabLayout mTabLayout;
 
+    ArrayList<Crypto> cryptos = new ArrayList<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,12 +46,35 @@ public class MainActivity extends AppCompatActivity
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
-        //On initial startup, display the markets fragment
-        Fragment fragment = new MarketviewFragment();
-        setFragment(fragment);
+        //On initial startup, fetch the data online first, then display the fragments and tabs
+        fetchJsonData();
+    }
 
-        setupMainTabs();
-        setupTopTabs();
+
+    //Helper method to start fetching data from Coingecko
+    private void fetchJsonData() {
+        RequestQueue mRequestQueue = Volley.newRequestQueue(this);
+
+        StringRequest mStringRequest = new StringRequest(Request.Method.GET,
+                NetworkUtils.getUrlForMarketviewData(), new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "onResponse got this data: " + response);
+                cryptos = JsonUtils.convertJsonToCryptoList(response);
+
+                Fragment fragment = new MarketviewFragment(cryptos);
+                setFragment(fragment);
+
+                setupMainTabs();
+                setupTopTabs();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, "Volley Error!!!!!!!! " + error.getMessage());
+            }
+        });
+        mRequestQueue.add(mStringRequest);
     }
 
     //Method to set up the behaviour of the tabs
@@ -54,7 +90,7 @@ public class MainActivity extends AppCompatActivity
                     case 0:     //Markets tab
                         mBinding.tabLayoutTop.setVisibility(View.VISIBLE);
                         if (mBinding.tabLayoutTop.getSelectedTabPosition() == 0) { //Load marketview fragment
-                            fragment = new MarketviewFragment();
+                            fragment = new MarketviewFragment(cryptos);
                         } else { //Load watchlist fragment
                             fragment = new WatchlistFragment();
                         }
@@ -91,7 +127,7 @@ public class MainActivity extends AppCompatActivity
                 Fragment fragment;
                 switch (mBinding.tabLayoutTop.getSelectedTabPosition()) {
                     case 0:
-                        fragment = new MarketviewFragment();
+                        fragment = new MarketviewFragment(cryptos);
                         setFragment(fragment);
                         break;
                     case 1:
@@ -129,7 +165,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onMarketItemClick(int clickedItemIndex) {
-        Toast.makeText(this, "You clicked on item " + clickedItemIndex, Toast.LENGTH_SHORT).show();
+    public void onMarketItemClick(Crypto crypto) {
+        Toast.makeText(this, "You clicked on " + crypto.getName(), Toast.LENGTH_SHORT).show();
     }
 }

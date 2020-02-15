@@ -8,10 +8,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.shuayb.capstone.android.crypfolio.MainActivity;
 import com.shuayb.capstone.android.crypfolio.POJOs.Crypto;
 import com.shuayb.capstone.android.crypfolio.R;
 import com.squareup.picasso.Picasso;
@@ -29,7 +27,7 @@ public class MarketRecyclerViewAdapter
     private MarketItemClickListener marketItemClickListener;
 
     public interface MarketItemClickListener {
-        void onMarketItemClick(int clickedItemIndex);
+        void onMarketItemClick(Crypto crypto);
     }
 
     public MarketRecyclerViewAdapter(Context mContext, ArrayList<Crypto> cryptos,
@@ -82,8 +80,7 @@ public class MarketRecyclerViewAdapter
 
         @Override
         public void onClick(View v) {
-            int clickedPosition = getAdapterPosition();
-            marketItemClickListener.onMarketItemClick(clickedPosition);
+            marketItemClickListener.onMarketItemClick(cryptos.get(getAdapterPosition()));
         }
     }
 }
