@@ -34,6 +34,8 @@ public class MainActivity extends AppCompatActivity
         implements MarketRecyclerViewAdapter.MarketItemClickListener {
 
     private static final String TAG = "MainActivity";
+    private static final String KEY_BUNDLE_FRAGMENT = "main_fragment";
+
     private static final int FRAG_MARKETVIEW = 1;
     private static final int FRAG_WATCHLIST = 2;
     private static final int FRAG_PORTFOLIO = 3;
@@ -42,6 +44,7 @@ public class MainActivity extends AppCompatActivity
     private ActivityMainBinding mBinding;
     private TabLayout mTabLayout;
     private int lastFragmentDisplayed;  //Keeps track of what fragment was last displayed
+    private MarketviewFragment marketviewFragment;
 
     ArrayList<Crypto> cryptos = new ArrayList<>();
 
@@ -53,12 +56,18 @@ public class MainActivity extends AppCompatActivity
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
-        //On initial startup, fetch the data online first, then display the fragments and tabs
+
+        if (savedInstanceState != null) {
+            Fragment fragment = getSupportFragmentManager().getFragment(savedInstanceState, KEY_BUNDLE_FRAGMENT);
+            if (fragment instanceof MarketviewFragment) {
+                marketviewFragment = (MarketviewFragment)fragment;
+            }
+        }
+
         fetchJsonData();
     }
 
-
-    //Helper method to start fetching data from Coingecko
+    //Helper method to start fetching data from Coingecko for initial setup
     private void fetchJsonData() {
         RequestQueue mRequestQueue = Volley.newRequestQueue(this);
 
@@ -83,25 +92,7 @@ public class MainActivity extends AppCompatActivity
         mRequestQueue.add(mStringRequest);
     }
 
-    private void refreshData() {
-        RequestQueue mRequestQueue = Volley.newRequestQueue(this);
 
-        StringRequest mStringRequest = new StringRequest(Request.Method.GET,
-                NetworkUtils.getUrlForMarketviewData(), new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "onResponse got this data: " + response);
-                cryptos = JsonUtils.convertJsonToCryptoList(response);
-
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Volley Error!!!!!!!! " + error.getMessage());
-            }
-        });
-        mRequestQueue.add(mStringRequest);
-    }
 
     //Method to set up the behaviour of the tabs
     //The tabs determine which fragment will be displayed
@@ -204,8 +195,10 @@ public class MainActivity extends AppCompatActivity
     private void setMarketviewFragment() {
         mBinding.tabLayoutTop.setVisibility(View.VISIBLE);
         mBinding.tabLayoutBottom.setVisibility(View.VISIBLE);
-        Fragment fragment = new MarketviewFragment(cryptos);
-        setFragment(fragment);
+        if (marketviewFragment == null) {
+            marketviewFragment = MarketviewFragment.newInstance(cryptos);
+        }
+        setFragment(marketviewFragment);
 
         //Hide the back button if it was shown
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
@@ -261,5 +254,15 @@ public class MainActivity extends AppCompatActivity
         //Display the details tab for the selected crypto
         //Also hide the top and bottom tabs
         setDetailsFragment(crypto);
+    }
+
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        Fragment f = getSupportFragmentManager().findFragmentById(R.id.frag_main);
+
+        getSupportFragmentManager().putFragment(outState, KEY_BUNDLE_FRAGMENT, f);
     }
 }

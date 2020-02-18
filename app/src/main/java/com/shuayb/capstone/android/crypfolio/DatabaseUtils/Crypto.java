@@ -1,5 +1,8 @@
 package com.shuayb.capstone.android.crypfolio.DatabaseUtils;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Ignore;
@@ -9,7 +12,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 @Entity(tableName = "watchlist")
-public class Crypto {
+public class Crypto implements Parcelable {
 
     //If any double values are set to -1, that means N/A (determined during parsing)
 
@@ -233,5 +236,31 @@ public class Crypto {
             }
         }
         return str.toString();
+    }
+
+    @Ignore
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Ignore
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(name);
+        dest.writeString(symbol);
+        dest.writeString(image);
+        dest.writeDouble(currentPrice);
+        dest.writeDouble(marketCap);
+        dest.writeDouble(high24h);
+        dest.writeDouble(low24h);
+        dest.writeDouble(priceChangePercent24h);
+        dest.writeDouble(circSupply);
+        dest.writeDouble(totalSupply);
+        dest.writeDouble(ath);
+        dest.writeDouble(athChangePercent);
+        dest.writeString(athDate);
+        dest.writeString(lastUpdated);
     }
 }

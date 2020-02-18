@@ -20,13 +20,26 @@ import java.util.ArrayList;
 
 public class MarketviewFragment extends Fragment {
     private static final String TAG = "MarketviewFragment";
+    private static final String KEY_BUNDLE_ARRAYLIST = "crypto_list";
 
     private MarketviewFragmentBinding mBinding;
 
     ArrayList<Crypto> cryptos;
 
-    public MarketviewFragment(ArrayList<Crypto> cryptos) {
-        this.cryptos = cryptos;
+
+
+    public static final MarketviewFragment newInstance(ArrayList<Crypto> cryptos) {
+        MarketviewFragment f = new MarketviewFragment();
+        Bundle bundle = new Bundle(1);
+        bundle.putParcelableArrayList(KEY_BUNDLE_ARRAYLIST, cryptos);
+        f.setArguments(bundle);
+        return f;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        cryptos = getArguments().getParcelableArrayList(KEY_BUNDLE_ARRAYLIST);
     }
 
     @Nullable
@@ -46,4 +59,15 @@ public class MarketviewFragment extends Fragment {
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
+
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
 }
