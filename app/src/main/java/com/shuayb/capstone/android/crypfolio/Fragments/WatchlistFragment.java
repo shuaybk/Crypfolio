@@ -9,6 +9,8 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.MarketRecyclerViewAdapter;
@@ -19,6 +21,7 @@ import com.shuayb.capstone.android.crypfolio.R;
 import com.shuayb.capstone.android.crypfolio.databinding.WatchlistFragmentBinding;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class WatchlistFragment extends Fragment {
     private static final String TAG = "WatchlistFragment";
@@ -32,29 +35,22 @@ public class WatchlistFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mBinding = WatchlistFragmentBinding.inflate(inflater, container, false);
-        mDb = AppDatabase.getInstance(getContext().getApplicationContext());
+        mDb = AppDatabase.getInstance(getContext());
 
         fetchWatchlistItems();
-
 
         return mBinding.getRoot();
     }
 
     private void fetchWatchlistItems() {
-        new AsyncTask<Void, Void, Void>() {
-
+        LiveData<List<Crypto>> items = mDb.watchlistDao().loadAllWatchListItems();
+        items.observe(this, new Observer<List<Crypto>>() {
             @Override
-            protected Void doInBackground(Void... voids) {
-                watchlistItems = new ArrayList<Crypto>(mDb.watchlistDao().loadAllWatchListItems());
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void aVoid) {
-                super.onPostExecute(aVoid);
+            public void onChanged(List<Crypto> cryptos) {
+                watchlistItems = new ArrayList<Crypto>(cryptos);
                 initRecyclerview();
             }
-        }.execute();
+        });
     }
 
     private void initRecyclerview() {
@@ -62,4 +58,5 @@ public class WatchlistFragment extends Fragment {
         mBinding.recyclerView.setAdapter(adapter);
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
+
 }

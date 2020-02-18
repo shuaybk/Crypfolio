@@ -67,7 +67,7 @@ public class GsonCustomDeserializer implements JsonDeserializer<Crypto> {
     //Helper method to get the string value from a JsonElement
     //If the element is null, set the String to "N/A"
     private String getStringValue(JsonElement jElement) {
-        Log.d(TAG, "Parsing String:  " + jElement.toString());
+        //Log.d(TAG, "Parsing String:  " + jElement.toString());
         if (jElement.isJsonNull()) {
             return "N/A";
         }
@@ -77,7 +77,7 @@ public class GsonCustomDeserializer implements JsonDeserializer<Crypto> {
     //Helper method to get the double value from a JsonElement
     //If the element is null, set the double to -1
     private double getDoubleValue(JsonElement jElement) {
-        Log.d(TAG, "Parsing double:  " + jElement.toString());
+        //Log.d(TAG, "Parsing double:  " + jElement.toString());
         if (jElement.isJsonNull()) {
             return -1;
         }

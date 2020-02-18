@@ -1,5 +1,6 @@
 package com.shuayb.capstone.android.crypfolio.DatabaseUtils;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -12,7 +13,7 @@ import java.util.List;
 public interface WatchlistDao {
 
     @Query("SELECT * FROM watchlist")
-    List<Crypto> loadAllWatchListItems();
+    LiveData<List<Crypto>> loadAllWatchListItems();
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertWatchlistItem(Crypto crypto);
