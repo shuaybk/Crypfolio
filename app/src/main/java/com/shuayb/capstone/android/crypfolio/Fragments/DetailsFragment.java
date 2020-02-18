@@ -65,9 +65,15 @@ public class DetailsFragment extends Fragment {
     //Helper method to initialize the views with crypto information
     private void initViews() {
         setChart();
-        mBinding.symbolText.setText(crypto.getSymbol());
-        mBinding.nameText.setText(crypto.getName());
+        mBinding.symbolText.setText(crypto.getSymbol().toUpperCase());
+        mBinding.priceText.setText("$" + crypto.getCurrentPrice());
         mBinding.marketcapText.setText("Market Cap: " + crypto.getFormattedMarketcapFull());
+        mBinding.high24hText.setText("High 24h: " + crypto.getHigh24h());
+        mBinding.low24hText.setText("Low 24h: " + crypto.getLow24h());
+        mBinding.circSupplyText.setText("Circulating Supply: " + crypto.getCircSupply());
+        mBinding.totalSupplyText.setText("Total Supply: " + crypto.getTotalSupply());
+        mBinding.athText.setText("ATH: " + crypto.getAth() + " on " + crypto.getAthDate());
+        mBinding.lastUpdatedText.setText("Last Updated: " + crypto.getLastUpdated());
     }
 
     private void setChart() {
@@ -100,6 +106,7 @@ public class DetailsFragment extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.details_menu, menu);
         this.menu = menu;
+
         setIsWatchlistItem();
 
         super.onCreateOptionsMenu(menu, inflater);

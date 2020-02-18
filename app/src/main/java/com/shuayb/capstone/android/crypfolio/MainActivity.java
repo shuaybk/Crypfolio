@@ -83,6 +83,26 @@ public class MainActivity extends AppCompatActivity
         mRequestQueue.add(mStringRequest);
     }
 
+    private void refreshData() {
+        RequestQueue mRequestQueue = Volley.newRequestQueue(this);
+
+        StringRequest mStringRequest = new StringRequest(Request.Method.GET,
+                NetworkUtils.getUrlForMarketviewData(), new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "onResponse got this data: " + response);
+                cryptos = JsonUtils.convertJsonToCryptoList(response);
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, "Volley Error!!!!!!!! " + error.getMessage());
+            }
+        });
+        mRequestQueue.add(mStringRequest);
+    }
+
     //Method to set up the behaviour of the tabs
     //The tabs determine which fragment will be displayed
     //Except for settings, which launches a new activity
@@ -219,6 +239,7 @@ public class MainActivity extends AppCompatActivity
 
         //Enable the back button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(crypto.getName());
     }
 
     //Set behavior of actionbar back button

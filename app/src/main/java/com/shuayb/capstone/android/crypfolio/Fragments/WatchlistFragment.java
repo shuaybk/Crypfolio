@@ -31,6 +31,7 @@ public class WatchlistFragment extends Fragment {
 
     private ArrayList<Crypto> watchlistItems;
 
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
