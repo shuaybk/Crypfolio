@@ -34,8 +34,14 @@ public class MainActivity extends AppCompatActivity
         implements MarketRecyclerViewAdapter.MarketItemClickListener {
 
     private static final String TAG = "MainActivity";
+    private static final int FRAG_MARKETVIEW = 1;
+    private static final int FRAG_WATCHLIST = 2;
+    private static final int FRAG_PORTFOLIO = 3;
+    private static final int FRAG_DETAILS = 4;
+
     private ActivityMainBinding mBinding;
     private TabLayout mTabLayout;
+    private int lastFragmentDisplayed;  //Keeps track of what fragment was last displayed
 
     ArrayList<Crypto> cryptos = new ArrayList<>();
 
@@ -146,6 +152,9 @@ public class MainActivity extends AppCompatActivity
     private void setFragment(Fragment fragment) {
         FragmentManager fm = getSupportFragmentManager();
 
+        //Store which fragment was last displayed before we change the fragment
+        setValueOfLastFragmentDisplayed(fm);
+
         if (fm.findFragmentById(R.id.frag_main) != null) {
             fm.beginTransaction()
                     .replace(R.id.frag_main, fragment)
@@ -154,6 +163,21 @@ public class MainActivity extends AppCompatActivity
             fm.beginTransaction()
                     .add(R.id.frag_main, fragment)
                     .commit();
+        }
+    }
+
+    //Helper method that sets the correct value for lastFragmentDisplayed
+    private void setValueOfLastFragmentDisplayed(FragmentManager fm) {
+        Fragment fragment = fm.findFragmentById(R.id.frag_main);
+
+        if (fragment == null || fragment instanceof MarketviewFragment) {
+            lastFragmentDisplayed = FRAG_MARKETVIEW;  //Default state is marketview fragment if no previous fragment exists
+        } else if (fragment instanceof WatchlistFragment) {
+            lastFragmentDisplayed = FRAG_WATCHLIST;
+        } else if (fragment instanceof  PortfolioFragment) {
+            lastFragmentDisplayed = FRAG_PORTFOLIO;
+        } else if (fragment instanceof DetailsFragment) {
+            lastFragmentDisplayed = FRAG_DETAILS;
         }
     }
 
@@ -198,12 +222,16 @@ public class MainActivity extends AppCompatActivity
     }
 
     //Set behavior of actionbar back button
+    //Back button only displays on the main activity if we are in details fragment
     //TODO - Make this work for the device back button as well
     @Override
     public boolean onSupportNavigateUp(){
         //TODO - Fix so it goes back to watchlist if selected from watchlist
-        mBinding.tabLayoutTop.getTabAt(0).select();
-        setMarketviewFragment();
+        if (lastFragmentDisplayed == FRAG_WATCHLIST) {
+            setWatchlistFragment();
+        } else {
+            setMarketviewFragment();
+        }
         return true;
     }
 
