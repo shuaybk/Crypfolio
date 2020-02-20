@@ -95,6 +95,8 @@ public class DetailsFragment extends Fragment {
         mBinding.totalSupplyText.setText("Total Supply: " + crypto.getTotalSupply());
         mBinding.athText.setText("ATH: " + crypto.getAth() + " on " + crypto.getAthDate());
         mBinding.lastUpdatedText.setText("Last Updated: " + crypto.getLastUpdated());
+
+        getActivity().getActionBar().setTitle(crypto.getName());
     }
 
     private void setChart() {

@@ -27,7 +27,6 @@ import com.shuayb.capstone.android.crypfolio.Fragments.WatchlistFragment;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.databinding.ActivityMainBinding;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 
@@ -42,6 +41,8 @@ public class MainActivity extends AppCompatActivity
     private static final String KEY_BUNDLE_DETAILS_FRAGMENT = "details_fragment";
     private static final String KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED = "last_fragment";
     private static final String KEY_BUNDLE_CRYPTO_LIST = "crypto_list";
+    private static final String KEY_BUNDLE_TOP_TAB_POS = "top_tab_position";
+    private static final String KEY_BUNDLE_BOTTOM_TAB_POS = "bottom_tab_position";
 
     private static final int FRAG_MARKETVIEW = 1;
     private static final int FRAG_WATCHLIST = 2;
@@ -68,17 +69,7 @@ public class MainActivity extends AppCompatActivity
 
 
         if (savedInstanceState != null) {
-            FragmentManager fm = getSupportFragmentManager();
-
-            marketviewFragment = (MarketviewFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_MARKETVIEW_FRAGMENT);
-            watchlistFragment = (WatchlistFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_WATCHLIST_FRAGMENT);
-            portfolioFragment = (PortfolioFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_PORTFOLIO_FRAGMENT);
-            detailsFragment = (DetailsFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_DETAILS_FRAGMENT);
-
-            lastFragmentDisplayed = savedInstanceState.getInt(KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED);
-            cryptos = savedInstanceState.getParcelableArrayList(KEY_BUNDLE_CRYPTO_LIST);
-
-            restoreSetup();
+            restoreSetup(savedInstanceState);
         } else {
             initialSetup();
         }
@@ -122,8 +113,8 @@ public class MainActivity extends AppCompatActivity
 
                 setMarketviewFragment();
 
-                setupBottomTabs();
-                setupTopTabs();
+                setupBottomTabs(0);
+                setupTopTabs(0);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -134,18 +125,45 @@ public class MainActivity extends AppCompatActivity
         mRequestQueue.add(mStringRequest);
     }
 
-    private void restoreSetup() {
-        setMarketviewFragment();
+    private void restoreSetup(Bundle savedInstanceState) {
+        int topTabPosition = savedInstanceState.getInt(KEY_BUNDLE_TOP_TAB_POS);
+        int bottomTabPosition = savedInstanceState.getInt(KEY_BUNDLE_BOTTOM_TAB_POS);
 
-        setupBottomTabs();
-        setupTopTabs();
+        setupBottomTabs(bottomTabPosition);
+        setupTopTabs(topTabPosition);
+
+        FragmentManager fm = getSupportFragmentManager();
+
+        marketviewFragment = (MarketviewFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_MARKETVIEW_FRAGMENT);
+        watchlistFragment = (WatchlistFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_WATCHLIST_FRAGMENT);
+        portfolioFragment = (PortfolioFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_PORTFOLIO_FRAGMENT);
+        detailsFragment = (DetailsFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_DETAILS_FRAGMENT);
+
+        lastFragmentDisplayed = savedInstanceState.getInt(KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED);
+        cryptos = savedInstanceState.getParcelableArrayList(KEY_BUNDLE_CRYPTO_LIST);
+
+        Fragment currFrag = fm.findFragmentById(R.id.frag_main);
+
+        if (currFrag instanceof MarketviewFragment) {
+            setMarketviewFragmentViews();
+        } else if (currFrag instanceof WatchlistFragment) {
+            setWatchlistFragmentViews();
+        } else if (currFrag instanceof PortfolioFragment) {
+            setPortfolioFragmentViews();
+        } else if (currFrag instanceof DetailsFragment) {
+            setDetailsFragmentViews();
+        }
+
     }
 
 
     //Method to set up the behaviour of the tabs
     //The tabs determine which fragment will be displayed
     //Except for settings, which launches a new activity
-    private void setupBottomTabs() {
+    private void setupBottomTabs(int pos) {
+        if (pos >= 0) {
+            mBinding.tabLayoutBottom.getTabAt(pos).select();
+        }
         mBinding.tabLayoutBottom.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -180,7 +198,10 @@ public class MainActivity extends AppCompatActivity
     }
 
 
-    private void setupTopTabs() {
+    private void setupTopTabs(int pos) {
+        if (pos >= 0) {
+            mBinding.tabLayoutTop.getTabAt(pos).select();
+        }
         mBinding.tabLayoutTop.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -244,40 +265,56 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setMarketviewFragment() {
-        mBinding.tabLayoutTop.setVisibility(View.VISIBLE);
-        mBinding.tabLayoutBottom.setVisibility(View.VISIBLE);
         setFragment(marketviewFragment);
-
-        //Hide the back button if it was shown
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        setMarketviewFragmentViews();
     }
 
     private void setPortfolioFragment() {
-        mBinding.tabLayoutTop.setVisibility(View.GONE);
-        mBinding.tabLayoutBottom.setVisibility(View.VISIBLE);
         setFragment(portfolioFragment);
-
-        //Hide the back button if it was shown
-        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        setPortfolioFragmentViews();
     }
 
     private void setWatchlistFragment() {
+        setFragment(watchlistFragment);
+        setWatchlistFragmentViews();
+    }
+
+    private void setDetailsFragment(Crypto crypto) {
+        setFragment(detailsFragment);
+        setDetailsFragmentViews();
+    }
+
+
+    private void setMarketviewFragmentViews() {
         mBinding.tabLayoutTop.setVisibility(View.VISIBLE);
         mBinding.tabLayoutBottom.setVisibility(View.VISIBLE);
-        setFragment(watchlistFragment);
 
         //Hide the back button if it was shown
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
     }
 
-    private void setDetailsFragment(Crypto crypto) {
+    private void setPortfolioFragmentViews() {
+        mBinding.tabLayoutTop.setVisibility(View.GONE);
+        mBinding.tabLayoutBottom.setVisibility(View.VISIBLE);
+
+        //Hide the back button if it was shown
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+    }
+
+    private void setWatchlistFragmentViews() {
+        mBinding.tabLayoutTop.setVisibility(View.VISIBLE);
+        mBinding.tabLayoutBottom.setVisibility(View.VISIBLE);
+
+        //Hide the back button if it was shown
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+    }
+
+    private void setDetailsFragmentViews() {
         mBinding.tabLayoutTop.setVisibility(View.GONE);
         mBinding.tabLayoutBottom.setVisibility(View.GONE);
-        setFragment(detailsFragment);
 
         //Enable the back button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle(crypto.getName());
     }
 
     //Set behavior of actionbar back button
@@ -313,5 +350,7 @@ public class MainActivity extends AppCompatActivity
 
         outState.putInt(KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED, lastFragmentDisplayed);
         outState.putParcelableArrayList(KEY_BUNDLE_CRYPTO_LIST, cryptos);
+        outState.putInt(KEY_BUNDLE_TOP_TAB_POS, mBinding.tabLayoutTop.getSelectedTabPosition());
+        outState.putInt(KEY_BUNDLE_BOTTOM_TAB_POS, mBinding.tabLayoutBottom.getSelectedTabPosition());
     }
 }
