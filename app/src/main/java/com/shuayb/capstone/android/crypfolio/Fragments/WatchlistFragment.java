@@ -31,6 +31,12 @@ public class WatchlistFragment extends Fragment {
 
     private ArrayList<Crypto> watchlistItems;
 
+    public static final WatchlistFragment newInstance() {
+        WatchlistFragment f = new WatchlistFragment();
+        //Bundle bundle = new Bundle(1);
+        //f.setArguments(bundle);
+        return f;
+    }
 
     @Nullable
     @Override
@@ -42,6 +48,7 @@ public class WatchlistFragment extends Fragment {
 
         return mBinding.getRoot();
     }
+
 
     private void fetchWatchlistItems() {
         LiveData<List<Crypto>> items = mDb.watchlistDao().loadAllWatchListItems();
@@ -60,4 +67,10 @@ public class WatchlistFragment extends Fragment {
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
+
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
 }

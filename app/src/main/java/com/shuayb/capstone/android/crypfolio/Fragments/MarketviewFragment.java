@@ -27,7 +27,8 @@ public class MarketviewFragment extends Fragment {
     ArrayList<Crypto> cryptos;
 
 
-
+    //Create new instance of the fragment here instead of using a custom constructor
+    //Best practice is not to overwrite the default constructor (otherwise will cause errors)
     public static final MarketviewFragment newInstance(ArrayList<Crypto> cryptos) {
         MarketviewFragment f = new MarketviewFragment();
         Bundle bundle = new Bundle(1);
@@ -59,12 +60,6 @@ public class MarketviewFragment extends Fragment {
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
 
-
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-    }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {

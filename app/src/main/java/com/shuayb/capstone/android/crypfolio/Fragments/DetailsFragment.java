@@ -35,8 +35,12 @@ import com.shuayb.capstone.android.crypfolio.POJOs.Chart;
 import com.shuayb.capstone.android.crypfolio.R;
 import com.shuayb.capstone.android.crypfolio.databinding.DetailsFragmentBinding;
 
+import java.util.ArrayList;
+
 public class DetailsFragment extends Fragment {
     private static final String TAG = "DetailsFragment";
+    private static final String KEY_BUNDLE_CRYPTO = "crypto_key";
+    private static final String KEY_BUNDLE_CHART = "chart_key";
 
     private AppDatabase mDb;
 
@@ -46,21 +50,38 @@ public class DetailsFragment extends Fragment {
     Menu menu;
     Chart chart;
 
-    public DetailsFragment(Crypto crypto) {
-        this.crypto = crypto;
+    public static final DetailsFragment newInstance(Crypto crypto) {
+        DetailsFragment f = new DetailsFragment();
+        Bundle bundle = new Bundle(1);
+        bundle.putParcelable(KEY_BUNDLE_CRYPTO, crypto);
+        f.setArguments(bundle);
+        return f;
     }
+
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mBinding = DetailsFragmentBinding.inflate(inflater, container, false);
         mDb = AppDatabase.getInstance(getContext());
-        initViews();
-        setHasOptionsMenu(true);
+
+        if (savedInstanceState != null) {
+            chart = savedInstanceState.getParcelable(KEY_BUNDLE_CHART);
+        }
+
+        if (crypto != null) {
+            initViews();
+            setHasOptionsMenu(true);
+        }
 
         return mBinding.getRoot();
     }
 
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        crypto = getArguments().getParcelable(KEY_BUNDLE_CRYPTO);
+    }
 
     //Helper method to initialize the views with crypto information
     private void initViews() {
@@ -77,29 +98,36 @@ public class DetailsFragment extends Fragment {
     }
 
     private void setChart() {
-        RequestQueue mRequestQueue = Volley.newRequestQueue(getContext());
+        if (chart == null) {
+            RequestQueue mRequestQueue = Volley.newRequestQueue(getContext());
 
-        StringRequest mStringRequest = new StringRequest(Request.Method.GET,
-                NetworkUtils.getUrlForChartData(crypto.getId()), new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "onResponse got this data: " + response);
+            StringRequest mStringRequest = new StringRequest(Request.Method.GET,
+                    NetworkUtils.getUrlForChartData(crypto.getId()), new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    Log.d(TAG, "onResponse got this data: " + response);
 
-                chart = JsonUtils.convertJsonToChart(response);
-                LineDataSet lineDataSet = new LineDataSet(chart.getPrices(), "Prices (USD)");
-                mBinding.chart.animateY(1000);
-                LineData lineData = new LineData(chart.getTimes(), lineDataSet);
-                mBinding.chart.setData(lineData);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Volley Error!!!!!!!! " + error.getMessage());
-            }
-        });
-        mRequestQueue.add(mStringRequest);
+                    chart = JsonUtils.convertJsonToChart(response);
+                    displayChart();
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e(TAG, "Volley Error!!!!!!!! " + error.getMessage());
+                }
+            });
+            mRequestQueue.add(mStringRequest);
+        } else {
+            displayChart();
+        }
     }
 
+    private void displayChart() {
+        LineDataSet lineDataSet = new LineDataSet(chart.getPrices(), "Prices (USD)");
+        mBinding.chart.animateY(1000);
+        LineData lineData = new LineData(chart.getTimes(), lineDataSet);
+        mBinding.chart.setData(lineData);
+    }
 
 
     @Override
@@ -176,5 +204,12 @@ public class DetailsFragment extends Fragment {
                 super.onPostExecute(aVoid);
             }
         }.execute();
+    }
+
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable(KEY_BUNDLE_CHART, chart);
     }
 }

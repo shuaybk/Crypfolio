@@ -55,6 +55,25 @@ public class Crypto implements Parcelable {
         this.lastUpdated = lastUpdated;
     }
 
+    @Ignore
+    public Crypto (Parcel parcel) {
+        this.id = parcel.readString();
+        this.name = parcel.readString();
+        this.symbol = parcel.readString();
+        this.image = parcel.readString();
+        this.currentPrice = parcel.readDouble();
+        this.marketCap = parcel.readDouble();
+        this.high24h = parcel.readDouble();
+        this.low24h = parcel.readDouble();
+        this.priceChangePercent24h = parcel.readDouble();
+        this.circSupply = parcel.readDouble();
+        this.totalSupply = parcel.readDouble();
+        this.ath = parcel.readDouble();
+        this.athChangePercent = parcel.readDouble();
+        this.athDate = parcel.readString();
+        this.lastUpdated = parcel.readString();
+    }
+
     /////////////////////////////////
     //////////// Getters ////////////
     /////////////////////////////////
@@ -237,6 +256,22 @@ public class Crypto implements Parcelable {
         }
         return str.toString();
     }
+
+
+
+    @Ignore
+    public static Creator<Crypto> CREATOR = new Creator<Crypto>() {
+
+        @Override
+        public Crypto createFromParcel(Parcel source) {
+            return new Crypto(source);
+        }
+
+        @Override
+        public Crypto[] newArray(int size) {
+            return new Crypto[size];
+        }
+    };
 
     @Ignore
     @Override
