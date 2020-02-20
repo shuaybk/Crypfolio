@@ -73,7 +73,6 @@ public class DetailsFragment extends Fragment {
             initViews();
             setHasOptionsMenu(true);
         }
-
         return mBinding.getRoot();
     }
 

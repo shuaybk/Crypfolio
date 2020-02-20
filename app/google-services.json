@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "415273107087",
+    "firebase_url": "https://crypfolio-43b65.firebaseio.com",
+    "project_id": "crypfolio-43b65",
+    "storage_bucket": "crypfolio-43b65.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:415273107087:android:14cb794cf1fbe0d3e6bafa",
+        "android_client_info": {
+          "package_name": "com.shuayb.capstone.android.crypfolio"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "415273107087-osabbufmof4mpcm4h60grc60q4dc5co7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBPLFsxT8t92aLT44pozXCYqD6YCaIhDDk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "415273107087-osabbufmof4mpcm4h60grc60q4dc5co7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

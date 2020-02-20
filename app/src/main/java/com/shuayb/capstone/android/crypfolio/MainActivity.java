@@ -126,11 +126,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void restoreSetup(Bundle savedInstanceState) {
-        int topTabPosition = savedInstanceState.getInt(KEY_BUNDLE_TOP_TAB_POS);
-        int bottomTabPosition = savedInstanceState.getInt(KEY_BUNDLE_BOTTOM_TAB_POS);
 
-        setupBottomTabs(bottomTabPosition);
-        setupTopTabs(topTabPosition);
 
         FragmentManager fm = getSupportFragmentManager();
 
@@ -141,6 +137,11 @@ public class MainActivity extends AppCompatActivity
 
         lastFragmentDisplayed = savedInstanceState.getInt(KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED);
         cryptos = savedInstanceState.getParcelableArrayList(KEY_BUNDLE_CRYPTO_LIST);
+        int topTabPosition = savedInstanceState.getInt(KEY_BUNDLE_TOP_TAB_POS);
+        int bottomTabPosition = savedInstanceState.getInt(KEY_BUNDLE_BOTTOM_TAB_POS);
+
+        setupBottomTabs(bottomTabPosition);
+        setupTopTabs(topTabPosition);
 
         Fragment currFrag = fm.findFragmentById(R.id.frag_main);
 
