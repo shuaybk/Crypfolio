@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity
 
                 marketviewFragment = MarketviewFragment.newInstance(cryptos);
                 watchlistFragment = WatchlistFragment.newInstance();
-                portfolioFragment = PortfolioFragment.newInstance();
+                portfolioFragment = PortfolioFragment.newInstance(cryptos);
                 detailsFragment = DetailsFragment.newInstance(null);
 
                 FragmentManager fm = getSupportFragmentManager();

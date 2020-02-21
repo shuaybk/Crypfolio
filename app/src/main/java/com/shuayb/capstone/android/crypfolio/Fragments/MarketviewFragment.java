@@ -29,10 +29,10 @@ public class MarketviewFragment extends Fragment {
 
     //Create new instance of the fragment here instead of using a custom constructor
     //Best practice is not to overwrite the default constructor (otherwise will cause errors)
-    public static final MarketviewFragment newInstance(ArrayList<Crypto> cryptos) {
+    public static final MarketviewFragment newInstance(ArrayList<Crypto> list) {
         MarketviewFragment f = new MarketviewFragment();
         Bundle bundle = new Bundle(1);
-        bundle.putParcelableArrayList(KEY_BUNDLE_ARRAYLIST, cryptos);
+        bundle.putParcelableArrayList(KEY_BUNDLE_ARRAYLIST, list);
         f.setArguments(bundle);
         return f;
     }
@@ -49,12 +49,12 @@ public class MarketviewFragment extends Fragment {
 
         mBinding = MarketviewFragmentBinding.inflate(inflater, container, false);
 
-        initRecyclerView(mBinding.getRoot());
+        initRecyclerView();
 
         return mBinding.getRoot();
     }
 
-    private void initRecyclerView(View view) {
+    private void initRecyclerView() {
         MarketRecyclerViewAdapter adapter = new MarketRecyclerViewAdapter(getContext(), cryptos, (MainActivity)getContext());
         mBinding.recyclerView.setAdapter(adapter);
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));

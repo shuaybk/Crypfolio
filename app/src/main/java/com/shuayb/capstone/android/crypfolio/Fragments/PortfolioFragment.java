@@ -15,19 +15,17 @@ import androidx.fragment.app.Fragment;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.shuayb.capstone.android.crypfolio.AddPortfolioActivity;
+import com.shuayb.capstone.android.crypfolio.AddPortfolioItemActivity;
+import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.databinding.PortfolioFragmentBinding;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +35,8 @@ import static android.app.Activity.RESULT_OK;
 
 public class PortfolioFragment extends Fragment {
     private static final String TAG = "PortfolioFragment";
+
+    private static final String KEY_BUNDLE_ARRAYLIST = "crypto_list";
     private static final int RC_SIGN_IN = 123;
     private static final int RC_ADD_PORTFOLIO_ITEM = 456;
 
@@ -45,14 +45,16 @@ public class PortfolioFragment extends Fragment {
     private FirebaseUser userFb;
     private FirebaseFirestore dbf;
     private DocumentReference portfolioRef;
+    private ArrayList<Crypto> cryptos;
 
     List<AuthUI.IdpConfig> providers = Arrays.asList(
             new AuthUI.IdpConfig.EmailBuilder().build());
 
-    public static final PortfolioFragment newInstance() {
+    public static final PortfolioFragment newInstance(ArrayList<Crypto> list) {
         PortfolioFragment f = new PortfolioFragment();
-        //Bundle bundle = new Bundle(1);
-        //f.setArguments(bundle);
+        Bundle bundle = new Bundle(1);
+        bundle.putParcelableArrayList(KEY_BUNDLE_ARRAYLIST, list);
+        f.setArguments(bundle);
         return f;
     }
 
@@ -61,6 +63,7 @@ public class PortfolioFragment extends Fragment {
         super.onCreate(savedInstanceState);
         authFb = FirebaseAuth.getInstance();
         dbf = FirebaseFirestore.getInstance();
+        cryptos = getArguments().getParcelableArrayList(KEY_BUNDLE_ARRAYLIST);
     }
 
     @Nullable
@@ -80,7 +83,8 @@ public class PortfolioFragment extends Fragment {
         mBinding.fabAddButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getContext(), AddPortfolioActivity.class);
+                Intent intent = new Intent(getContext(), AddPortfolioItemActivity.class);
+                intent.putParcelableArrayListExtra(KEY_BUNDLE_ARRAYLIST, cryptos);
                 startActivityForResult(intent, RC_ADD_PORTFOLIO_ITEM);
             }
         });
