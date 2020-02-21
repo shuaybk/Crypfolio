@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.shuayb.capstone.android.crypfolio.DataUtils.RandomUtils;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.R;
 import com.squareup.picasso.Picasso;
@@ -19,7 +20,7 @@ import java.util.ArrayList;
 public class MarketRecyclerViewAdapter
         extends RecyclerView.Adapter<MarketRecyclerViewAdapter.ViewHolder>{
 
-    private static final String TAG = "RecyclerViewAdapter";
+    private static final String TAG = "MarketRecyclerViewAdapter";
 
     private ArrayList<Crypto> cryptos;
     private Context mContext;
@@ -51,7 +52,7 @@ public class MarketRecyclerViewAdapter
         Picasso.get().load(cryptos.get(position).getImage()).into(holder.logoImage);
         holder.tvName.setText(cryptos.get(position).getName());
         holder.tvMarketcap.setText(cryptos.get(position).getFormattedMarketcapShort());
-        holder.tvPrice.setText("$" + cryptos.get(position).getFormattedPrice());
+        holder.tvPrice.setText("$" + RandomUtils.getFormattedCurrencyAmount(cryptos.get(position).getCurrentPrice()));
 
     }
 

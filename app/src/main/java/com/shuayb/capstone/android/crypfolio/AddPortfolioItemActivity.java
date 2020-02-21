@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -28,6 +29,9 @@ public class AddPortfolioItemActivity extends AppCompatActivity
 
     private static final String KEY_BUNDLE_ARRAYLIST = "crypto_list";
     private static final String FRAGMENT_DIALOG_TAG = "add_portfolio_item_fragment";
+    private static final String KEY_CRYPTO_ID = "key_crypto_id";
+    private static final String KEY_AMOUNT = "key_amount";
+    private static final String KEY_PURCHASE_PRICE = "key_purchase_price";
 
     private ArrayList<Crypto> cryptos;
     private ActivityAddPortfolioItemBinding mBinding;
@@ -36,6 +40,7 @@ public class AddPortfolioItemActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_portfolio_item);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_add_portfolio_item);
 
@@ -61,6 +66,13 @@ public class AddPortfolioItemActivity extends AppCompatActivity
     }
 
     @Override
+    public boolean onSupportNavigateUp() {
+        setResult(Activity.RESULT_CANCELED);
+        finish();
+        return true;
+    }
+
+    @Override
     public void onMarketItemClick(Crypto crypto) {
         FragmentManager fm = getSupportFragmentManager();
         AddPortfolioItemFragment fragment = AddPortfolioItemFragment.newInstance(crypto);
@@ -69,9 +81,15 @@ public class AddPortfolioItemActivity extends AppCompatActivity
         mBinding.backgroundCover.setVisibility(View.VISIBLE);
     }
 
+    //Data already verified
     @Override
     public void onSubmitPressed(String cryptoId, double amount, double purchasePrice) {
-        dismissDialog();
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(KEY_CRYPTO_ID, cryptoId);
+        resultIntent.putExtra(KEY_AMOUNT, amount);
+        resultIntent.putExtra(KEY_PURCHASE_PRICE, purchasePrice);
+        setResult(Activity.RESULT_OK, resultIntent);
+        finish();
     }
 
     @Override

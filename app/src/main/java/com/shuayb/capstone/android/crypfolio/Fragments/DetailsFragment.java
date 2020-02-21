@@ -2,7 +2,6 @@ package com.shuayb.capstone.android.crypfolio.Fragments;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -14,7 +13,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.LiveData;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -22,20 +20,16 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-import com.github.mikephil.charting.data.BarData;
-import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.utils.ColorTemplate;
 import com.shuayb.capstone.android.crypfolio.DataUtils.JsonUtils;
 import com.shuayb.capstone.android.crypfolio.DataUtils.NetworkUtils;
+import com.shuayb.capstone.android.crypfolio.DataUtils.RandomUtils;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.AppDatabase;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.POJOs.Chart;
 import com.shuayb.capstone.android.crypfolio.R;
 import com.shuayb.capstone.android.crypfolio.databinding.DetailsFragmentBinding;
-
-import java.util.ArrayList;
 
 public class DetailsFragment extends Fragment {
     private static final String TAG = "DetailsFragment";
@@ -86,7 +80,7 @@ public class DetailsFragment extends Fragment {
     private void initViews() {
         setChart();
         mBinding.symbolText.setText(crypto.getSymbol().toUpperCase());
-        mBinding.priceText.setText("$" + crypto.getFormattedPrice());
+        mBinding.priceText.setText("$" + RandomUtils.getFormattedCurrencyAmount(crypto.getCurrentPrice()));
         mBinding.marketcapText.setText("Market Cap: " + crypto.getFormattedMarketcapFull());
         mBinding.high24hText.setText("High 24h: " + crypto.getHigh24h());
         mBinding.low24hText.setText("Low 24h: " + crypto.getLow24h());

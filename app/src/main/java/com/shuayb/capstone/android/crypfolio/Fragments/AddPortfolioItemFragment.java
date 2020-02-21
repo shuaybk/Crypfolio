@@ -11,8 +11,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.Fragment;
 
+import com.shuayb.capstone.android.crypfolio.DataUtils.RandomUtils;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.databinding.AddPortfolioItemFragmentBinding;
 
@@ -69,7 +69,7 @@ public class AddPortfolioItemFragment extends DialogFragment {
 
     private void initViews() {
         mBinding.coinNameText.setText(crypto.getName());
-        mBinding.priceEditText.setText(crypto.getFormattedPrice());
+        mBinding.priceEditText.setText(RandomUtils.getFormattedCurrencyAmount(crypto.getCurrentPrice()));
 
         mBinding.submitButton.setOnClickListener(new View.OnClickListener() {
             @Override

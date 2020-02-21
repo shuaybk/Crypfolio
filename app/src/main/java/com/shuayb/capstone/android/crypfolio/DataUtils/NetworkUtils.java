@@ -9,6 +9,7 @@ public class NetworkUtils {
     private static final String CHART_PATH = "/market_chart";
 
     private static final String CURRENCY_KEY = "vs_currency";
+    private static final String IDS_KEY = "ids";
     private static final String ORDER_KEY = "order";
     private static final String PER_PAGE_KEY = "per_page";
     private static final String PAGE_KEY = "page";
@@ -29,6 +30,22 @@ public class NetworkUtils {
 
         Uri builtUri = Uri.parse(baseUrl).buildUpon()
                 .appendQueryParameter(CURRENCY_KEY, CURRENCY_USD)
+                .appendQueryParameter(ORDER_KEY, ORDER_MARKET_CAP)
+                .appendQueryParameter(PER_PAGE_KEY, ITEMS_PER_PAGE)
+                .appendQueryParameter(PAGE_KEY, PAGE)
+                .appendQueryParameter(SPARKLINE_KEY, SPARKLINE)
+                .appendQueryParameter(PRICE_CHANGE_PERCENTAGE_KEY, PRICE_CHANGE_PERCENTAGE)
+                .build();
+
+        return builtUri.toString();
+    }
+
+    public static String getUrlForPortfolioData(String ids) {
+        String baseUrl = BASE_URL + COINS_PATH + MARKETS_PATH;
+
+        Uri builtUri = Uri.parse(baseUrl).buildUpon()
+                .appendQueryParameter(CURRENCY_KEY, CURRENCY_USD)
+                .appendQueryParameter(IDS_KEY, ids)
                 .appendQueryParameter(ORDER_KEY, ORDER_MARKET_CAP)
                 .appendQueryParameter(PER_PAGE_KEY, ITEMS_PER_PAGE)
                 .appendQueryParameter(PAGE_KEY, PAGE)
