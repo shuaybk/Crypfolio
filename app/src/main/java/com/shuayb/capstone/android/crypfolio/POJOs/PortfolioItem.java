@@ -1,6 +1,9 @@
 package com.shuayb.capstone.android.crypfolio.POJOs;
 
-public class PortfolioItem {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class PortfolioItem implements Parcelable {
 
     private String id;
     private String name;
@@ -16,6 +19,15 @@ public class PortfolioItem {
         this.amount = amount;
         this.avgPrice = avgPrice;
         this.currentPrice = currentPrice;
+    }
+
+    public PortfolioItem(Parcel parcel) {
+        this.id = parcel.readString();
+        this.name = parcel.readString();
+        this.image = parcel.readString();
+        this.amount = parcel.readDouble();
+        this.avgPrice = parcel.readDouble();
+        this.currentPrice = parcel.readDouble();
     }
 
     public String getId() {
@@ -64,5 +76,34 @@ public class PortfolioItem {
 
     public void setCurrentPrice(double currentPrice) {
         this.currentPrice = currentPrice;
+    }
+
+
+    public static Creator<PortfolioItem> CREATOR = new Creator<PortfolioItem>() {
+
+        @Override
+        public PortfolioItem createFromParcel(Parcel source) {
+            return new PortfolioItem(source);
+        }
+
+        @Override
+        public PortfolioItem[] newArray(int size) {
+            return new PortfolioItem[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(name);
+        dest.writeString(image);
+        dest.writeDouble(amount);
+        dest.writeDouble(avgPrice);
+        dest.writeDouble(currentPrice);
     }
 }

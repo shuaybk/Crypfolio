@@ -66,9 +66,9 @@ public class RandomUtils {
         String result;
 
         if (netChange >= 0) {
-            result = "+" + "$" + getFormattedCurrencyAmount(netChange);
+            result = "+" + "$" + getFormattedCurrencyAmount(Math.abs(netChange));
         } else {
-            result = "-" + "$" + getFormattedCurrencyAmount(netChange);
+            result = "-" + "$" + getFormattedCurrencyAmount(Math.abs(netChange));
         }
 
         return result;
@@ -82,9 +82,9 @@ public class RandomUtils {
         String result;
 
         if (netChange >= 0) {
-            result = "+" + getFormattedPercentage(netChange);
+            result = "+" + getFormattedPercentage(Math.abs(netChange));
         } else {
-            result = "-" + getFormattedPercentage(netChange);
+            result = "-" + getFormattedPercentage(Math.abs(netChange));
         }
 
         return result;

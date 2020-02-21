@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.android.volley.Request;
@@ -46,10 +47,12 @@ import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 
 public class PortfolioFragment extends Fragment
-        implements PortfolioRecyclerViewAdapter.PortfolioItemClickListener {
+        implements PortfolioRecyclerViewAdapter.PortfolioItemClickListener,
+                DeletePortfolioItemFragment.DeletePortfolioDialogListener {
 
     private static final String TAG = "PortfolioFragment";
 
+    private static final String DELETE_DIALOG_FRAGMENT_TAG = "DeletePortfolioItemFragment";
     private static final String KEY_BUNDLE_ARRAYLIST = "crypto_list";
     private static final String KEY_CRYPTO_ID = "key_crypto_id";
     private static final String KEY_AMOUNT = "key_amount";
@@ -99,6 +102,8 @@ public class PortfolioFragment extends Fragment
     }
 
     private void initViews() {
+        mBinding.backgroundCover.setVisibility(View.GONE);
+        mBinding.backgroundCover.setAlpha(0.5f);
 
         if (userFb == null) {
             mBinding.signInPrompt.setVisibility(View.VISIBLE);
@@ -263,6 +268,12 @@ public class PortfolioFragment extends Fragment
                 });
     }
 
+    private void dismissDialog() {
+        FragmentManager fm = getFragmentManager();
+        DeletePortfolioItemFragment fragment = (DeletePortfolioItemFragment)(fm.findFragmentByTag(DELETE_DIALOG_FRAGMENT_TAG));
+        fragment.dismiss();
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -304,11 +315,50 @@ public class PortfolioFragment extends Fragment
 
     @Override
     public void onPortfolioItemClick(PortfolioItem portfolioItem) {
-        Toast.makeText(getContext(), "You click Portfolio item " + portfolioItem.getName(), Toast.LENGTH_SHORT).show();
+        //Do nothing
+    }
+
+    @Override
+    public void onPortfolioItemLongClick(PortfolioItem portfolioItem) {
+        DeletePortfolioItemFragment fragment = DeletePortfolioItemFragment.newInstance(portfolioItem);
+        fragment.setTargetFragment(this, 1);
+
+        mBinding.backgroundCover.setVisibility(View.VISIBLE);
+        fragment.show(getFragmentManager(), DELETE_DIALOG_FRAGMENT_TAG);
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
+    }
+
+    //From the Portfolio delete item dialog fragment
+    @Override
+    public void onDeleteClicked(final PortfolioItem item) {
+        portfolioRef.get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            Map<String, Object> data = task.getResult().getData();
+                            if (data != null) {
+                                data.remove(item.getId());
+                            }
+                            portfolioRef.set(data);
+                        }
+                    }
+                });
+        dismissDialog();
+    }
+
+    //From the Portfolio delete item dialog fragment
+    @Override
+    public void onCancelDeleteClicked() {
+        dismissDialog();
+    }
+
+    @Override
+    public void onDismissed() {
+        mBinding.backgroundCover.setVisibility(View.GONE);
     }
 }
