@@ -86,7 +86,7 @@ public class DetailsFragment extends Fragment {
     private void initViews() {
         setChart();
         mBinding.symbolText.setText(crypto.getSymbol().toUpperCase());
-        mBinding.priceText.setText("$" + crypto.getCurrentPrice());
+        mBinding.priceText.setText("$" + crypto.getFormattedPrice());
         mBinding.marketcapText.setText("Market Cap: " + crypto.getFormattedMarketcapFull());
         mBinding.high24hText.setText("High 24h: " + crypto.getHigh24h());
         mBinding.low24hText.setText("Low 24h: " + crypto.getLow24h());

@@ -21,12 +21,13 @@ import com.shuayb.capstone.android.crypfolio.databinding.ActivityAddPortfolioIte
 import java.util.ArrayList;
 
 public class AddPortfolioItemActivity extends AppCompatActivity
-        implements MarketRecyclerViewAdapter.MarketItemClickListener {
-
+        implements MarketRecyclerViewAdapter.MarketItemClickListener,
+                AddPortfolioItemFragment.PortfolioItemDialogListener {
 
     private static final String TAG = "AddPortfolioItemActivity";
 
     private static final String KEY_BUNDLE_ARRAYLIST = "crypto_list";
+    private static final String FRAGMENT_DIALOG_TAG = "add_portfolio_item_fragment";
 
     private ArrayList<Crypto> cryptos;
     private ActivityAddPortfolioItemBinding mBinding;
@@ -53,34 +54,33 @@ public class AddPortfolioItemActivity extends AppCompatActivity
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }
 
+    private void dismissDialog() {
+        FragmentManager fm = getSupportFragmentManager();
+        AddPortfolioItemFragment fragment = (AddPortfolioItemFragment)fm.findFragmentByTag(FRAGMENT_DIALOG_TAG);
+        fragment.dismiss();
+    }
+
     @Override
     public void onMarketItemClick(Crypto crypto) {
+        FragmentManager fm = getSupportFragmentManager();
         AddPortfolioItemFragment fragment = AddPortfolioItemFragment.newInstance(crypto);
 
-        FragmentManager fm = getSupportFragmentManager();
-        fm.beginTransaction()
-                .add(R.id.fragment_add, fragment)
-                .commit();
-
+        fragment.show(fm, FRAGMENT_DIALOG_TAG);
         mBinding.backgroundCover.setVisibility(View.VISIBLE);
-        disableRecyclerViewInteraction();
-    }
-    
-    public void disableRecyclerViewInteraction() {
-        mBinding.recyclerView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return true;
-            }
-        });
     }
 
-    public void enableRecyclerViewInteraction() {
-        mBinding.recyclerView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return false;
-            }
-        });
+    @Override
+    public void onSubmitPressed(String cryptoId, double amount, double purchasePrice) {
+        dismissDialog();
+    }
+
+    @Override
+    public void onCancelPressed() {
+        dismissDialog();
+    }
+
+    @Override
+    public void onDismissed() {
+        mBinding.backgroundCover.setVisibility(View.GONE);
     }
 }

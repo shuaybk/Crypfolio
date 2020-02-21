@@ -10,6 +10,7 @@ import androidx.room.PrimaryKey;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.text.DecimalFormat;
 
 @Entity(tableName = "watchlist")
 public class Crypto implements Parcelable {
@@ -255,6 +256,34 @@ public class Crypto implements Parcelable {
             }
         }
         return str.toString();
+    }
+
+
+    //Format the price to a string rounded to a reasonable amount
+    @Ignore
+    public String getFormattedPrice() {
+        String result;
+
+        if (currentPrice > 5) { //To 2 decimal points
+            double priceRounded = Math.round(currentPrice * 100)/100.0;
+            System.out.println("Real price = " + currentPrice + ", Rounded = " + priceRounded);
+            DecimalFormat df = new DecimalFormat("0.00");
+            result = df.format(priceRounded);
+
+        } else if (currentPrice > 1) { //To 3 decimals
+            double priceRounded = Math.round(currentPrice * 1000)/1000.0;
+            System.out.println("Real price = " + currentPrice + ", Rounded = " + priceRounded);
+            DecimalFormat df = new DecimalFormat("0.000");
+            result = df.format(priceRounded);
+
+        } else { //To 6 decimals
+            double priceRounded = Math.round(currentPrice * 1000000)/1000000.0;
+            System.out.println("Real price = " + currentPrice + ", Rounded = " + priceRounded);
+            DecimalFormat df = new DecimalFormat("0.000000");
+            result = df.format(priceRounded);
+        }
+
+        return result;
     }
 
 

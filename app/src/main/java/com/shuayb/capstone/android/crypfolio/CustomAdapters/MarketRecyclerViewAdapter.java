@@ -51,7 +51,7 @@ public class MarketRecyclerViewAdapter
         Picasso.get().load(cryptos.get(position).getImage()).into(holder.logoImage);
         holder.tvName.setText(cryptos.get(position).getName());
         holder.tvMarketcap.setText(cryptos.get(position).getFormattedMarketcapShort());
-        holder.tvPrice.setText("$" + cryptos.get(position).getCurrentPrice());
+        holder.tvPrice.setText("$" + cryptos.get(position).getFormattedPrice());
 
     }
 

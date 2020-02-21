@@ -1,5 +1,7 @@
 package com.shuayb.capstone.android.crypfolio.Fragments;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -8,12 +10,13 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.databinding.AddPortfolioItemFragmentBinding;
 
-public class AddPortfolioItemFragment extends Fragment {
+public class AddPortfolioItemFragment extends DialogFragment {
     private static final String TAG = "AddPortfolioItemFragment";
 
     private static final String KEY_BUNDLE_CRYPTO = "crypto_key";
@@ -21,6 +24,13 @@ public class AddPortfolioItemFragment extends Fragment {
     AddPortfolioItemFragmentBinding mBinding;
 
     Crypto crypto;
+    PortfolioItemDialogListener mCallback;
+
+    public interface PortfolioItemDialogListener {
+        public void onSubmitPressed(String cryptoId, double amount, double purchasePrice);
+        public void onCancelPressed();
+        public void onDismissed();
+    }
 
     public static final AddPortfolioItemFragment newInstance(Crypto data) {
         AddPortfolioItemFragment f = new AddPortfolioItemFragment();
@@ -28,6 +38,17 @@ public class AddPortfolioItemFragment extends Fragment {
         bundle.putParcelable(KEY_BUNDLE_CRYPTO, data);
         f.setArguments(bundle);
         return f;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        try {
+            mCallback = (PortfolioItemDialogListener)context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString() + " must implement PortfolioItemDialogListener");
+        }
     }
 
     @Override
@@ -48,14 +69,32 @@ public class AddPortfolioItemFragment extends Fragment {
 
     private void initViews() {
         mBinding.coinNameText.setText(crypto.getName());
+        mBinding.priceEditText.setText(crypto.getFormattedPrice());
 
         mBinding.submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String amount = mBinding.submitButton.getText().toString();
-                Toast.makeText(getContext(), "You added " + amount + " " + crypto.getName() + " to your portfolio", Toast.LENGTH_SHORT).show();
-                //TODO - This should return a result to calling main activity
+                try {
+                    double amount = Double.parseDouble(mBinding.amountEditText.getText().toString());
+                    double purchasePrice = Double.parseDouble(mBinding.priceEditText.getText().toString());
+                    mCallback.onSubmitPressed(crypto.getId(), amount, purchasePrice);
+                } catch (Exception e) {
+                    Toast.makeText(getContext(), "Invalid entries - try again", Toast.LENGTH_SHORT).show();
+                }
             }
         });
+
+        mBinding.cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCallback.onCancelPressed();
+            }
+        });
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+        mCallback.onDismissed();
     }
 }

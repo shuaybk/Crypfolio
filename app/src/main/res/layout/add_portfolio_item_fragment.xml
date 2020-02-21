@@ -7,17 +7,17 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:padding="10dp"
         android:background="@color/lightGrey">
 
         <TextView
             android:id="@+id/coin_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
             android:text="Coin: "
             android:textSize="20sp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.15"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.25" />
@@ -35,7 +35,7 @@
             android:id="@+id/amount_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="20dp"
             android:text="Amount: "
             android:textSize="20sp"
             app:layout_constraintStart_toStartOf="@id/coin_label"
@@ -47,19 +47,49 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:hint="Enter amount"
-            android:textSize="20sp"
+            android:textSize="14sp"
             app:layout_constraintStart_toEndOf="@id/amount_label"
-            app:layout_constraintTop_toTopOf="@id/amount_label" />
+            app:layout_constraintTop_toTopOf="@+id/amount_label" />
+
+        <TextView
+            android:id="@+id/price_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Purchase price: "
+            android:textSize="20sp"
+            app:layout_constraintStart_toStartOf="@id/coin_label"
+            app:layout_constraintTop_toBottomOf="@+id/amount_label" />
+
+        <EditText
+            android:id="@+id/price_editText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:textSize="14sp"
+            app:layout_constraintStart_toEndOf="@id/price_label"
+            app:layout_constraintTop_toTopOf="@id/price_label" />
+
+        <Button
+            android:id="@+id/cancel_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cancel"
+            android:layout_marginTop="10dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.15"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/price_editText" />
 
         <Button
             android:id="@+id/submit_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Submit"
-            android:layout_marginTop="40dp"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.85"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/amount_editText" />
+            app:layout_constraintTop_toTopOf="@+id/cancel_button" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
