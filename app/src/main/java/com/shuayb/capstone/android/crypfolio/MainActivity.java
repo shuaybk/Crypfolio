@@ -9,18 +9,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.android.material.tabs.TabLayout;
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.MarketRecyclerViewAdapter;
-import com.shuayb.capstone.android.crypfolio.DataUtils.JsonUtils;
-import com.shuayb.capstone.android.crypfolio.DataUtils.NetworkUtils;
+
 import com.shuayb.capstone.android.crypfolio.Fragments.DetailsFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.MarketviewFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.PortfolioFragment;
@@ -32,8 +27,7 @@ import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity
-        implements MarketRecyclerViewAdapter.MarketItemClickListener,
-                DataViewModel.OnDataRefreshedListener {
+        implements MarketRecyclerViewAdapter.MarketItemClickListener {
 
     private static final String TAG = "MainActivity";
 
@@ -42,7 +36,6 @@ public class MainActivity extends AppCompatActivity
     private static final String KEY_BUNDLE_PORTFOLIO_FRAGMENT = "portfolio_fragment";
     private static final String KEY_BUNDLE_DETAILS_FRAGMENT = "details_fragment";
     private static final String KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED = "last_fragment";
-    private static final String KEY_BUNDLE_CRYPTO_LIST = "crypto_list";
     private static final String KEY_BUNDLE_TOP_TAB_POS = "top_tab_position";
     private static final String KEY_BUNDLE_BOTTOM_TAB_POS = "bottom_tab_position";
 
@@ -52,7 +45,6 @@ public class MainActivity extends AppCompatActivity
     private static final int FRAG_DETAILS = 4;
 
     private ActivityMainBinding mBinding;
-    private TabLayout mTabLayout;
     private int lastFragmentDisplayed = 0;  //Keeps track of what fragment was last displayed
     private MarketviewFragment marketviewFragment;
     private WatchlistFragment watchlistFragment;
@@ -60,9 +52,6 @@ public class MainActivity extends AppCompatActivity
     private DetailsFragment detailsFragment;
     private Thread refreshThread;
     private DataViewModel mData;
-
-    ArrayList<Crypto> cryptos = new ArrayList<>();
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,23 +64,30 @@ public class MainActivity extends AppCompatActivity
         if (savedInstanceState != null) {
             restoreSetup(savedInstanceState);
         } else {
-            initialSetup();
+            mData.refreshCryptos(this);
         }
+
+        setCryptoDataObservers();
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        mData.setCallback(null);
+    private void setCryptoDataObservers() {
+
+        mData.getCryptos().observe(this, new Observer<ArrayList<Crypto>>() {
+            @Override
+            public void onChanged(ArrayList<Crypto> cryptos) {
+
+                if (marketviewFragment == null) {  //Initial setup
+                    if (mData.getCryptos().getValue().isEmpty() == false) {
+                        initialSetup();
+                    }
+                } else {
+                    //Update whatever needs new crypto info
+                }
+            }
+        });
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        mData.setCallback(this);
-    }
-
-
+    //Start a thread to refresh the crypto info every x seconds
     @Override
     protected void onStart() {
         super.onStart();
@@ -116,83 +112,46 @@ public class MainActivity extends AppCompatActivity
         refreshThread.start();
     }
 
+    //Stop the thread that forces data refresh
     @Override
     protected void onStop() {
         super.onStop();
         refreshThread.interrupt();
     }
 
-    public void updateCryptoInfo() {
-        RequestQueue mRequestQueue = Volley.newRequestQueue(this);
-
-        StringRequest mStringRequest = new StringRequest(Request.Method.GET,
-                NetworkUtils.getUrlForMarketviewData(), new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "onResponse got this data: " + response);
-                cryptos = JsonUtils.convertJsonToCryptoList(response);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Volley Error refreshing data!!  " + error.getMessage());
-            }
-        });
-        mRequestQueue.add(mStringRequest);
-    }
-
     private void initialSetup() {
-        RequestQueue mRequestQueue = Volley.newRequestQueue(this);
+        marketviewFragment = MarketviewFragment.newInstance();
+        watchlistFragment = WatchlistFragment.newInstance();
+        portfolioFragment = PortfolioFragment.newInstance(mData.getCryptos().getValue());
+        detailsFragment = DetailsFragment.newInstance(null);
 
-        StringRequest mStringRequest = new StringRequest(Request.Method.GET,
-                NetworkUtils.getUrlForMarketviewData(), new Response.Listener<String>() {
-            @Override
-            public void onResponse(String response) {
-                Log.d(TAG, "onResponse got this data: " + response);
-                cryptos = JsonUtils.convertJsonToCryptoList(response);
+        FragmentManager fm = getSupportFragmentManager();
+        fm.beginTransaction()
+                .add(R.id.frag_main, marketviewFragment)
+                .commit();
+        fm.beginTransaction()
+                .detach(marketviewFragment)
+                .add(R.id.frag_main, watchlistFragment)
+                .commit();
+        fm.beginTransaction()
+                .detach(watchlistFragment)
+                .add(R.id.frag_main, portfolioFragment)
+                .commit();
+        fm.beginTransaction()
+                .detach(portfolioFragment)
+                .add(R.id.frag_main, detailsFragment)
+                .commit();
+        fm.beginTransaction()
+                .detach(detailsFragment)
+                .commit();
 
-                marketviewFragment = MarketviewFragment.newInstance(cryptos);
-                watchlistFragment = WatchlistFragment.newInstance();
-                portfolioFragment = PortfolioFragment.newInstance(cryptos);
-                detailsFragment = DetailsFragment.newInstance(null);
+        setMarketviewFragment();
 
-                FragmentManager fm = getSupportFragmentManager();
-                fm.beginTransaction()
-                        .add(R.id.frag_main, marketviewFragment)
-                        .commit();
-                fm.beginTransaction()
-                        .detach(marketviewFragment)
-                        .add(R.id.frag_main, watchlistFragment)
-                        .commit();
-                fm.beginTransaction()
-                        .detach(watchlistFragment)
-                        .add(R.id.frag_main, portfolioFragment)
-                        .commit();
-                fm.beginTransaction()
-                        .detach(portfolioFragment)
-                        .add(R.id.frag_main, detailsFragment)
-                        .commit();
-                fm.beginTransaction()
-                        .detach(detailsFragment)
-                        .commit();
-
-                setMarketviewFragment();
-
-                setupBottomTabs(0);
-                setupTopTabs(0);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Volley Error!!!!!!!! " + error.getMessage());
-            }
-        });
-        mRequestQueue.add(mStringRequest);
+        setupBottomTabs(0);
+        setupTopTabs(0);
     }
 
     private void restoreSetup(Bundle savedInstanceState) {
-
-
         FragmentManager fm = getSupportFragmentManager();
 
         marketviewFragment = (MarketviewFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_MARKETVIEW_FRAGMENT);
@@ -201,7 +160,6 @@ public class MainActivity extends AppCompatActivity
         detailsFragment = (DetailsFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_DETAILS_FRAGMENT);
 
         lastFragmentDisplayed = savedInstanceState.getInt(KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED);
-        cryptos = savedInstanceState.getParcelableArrayList(KEY_BUNDLE_CRYPTO_LIST);
         int topTabPosition = savedInstanceState.getInt(KEY_BUNDLE_TOP_TAB_POS);
         int bottomTabPosition = savedInstanceState.getInt(KEY_BUNDLE_BOTTOM_TAB_POS);
 
@@ -219,7 +177,6 @@ public class MainActivity extends AppCompatActivity
         } else if (currFrag instanceof DetailsFragment) {
             setDetailsFragmentViews();
         }
-
     }
 
 
@@ -416,13 +373,8 @@ public class MainActivity extends AppCompatActivity
         getSupportFragmentManager().putFragment(outState, KEY_BUNDLE_DETAILS_FRAGMENT, detailsFragment);
 
         outState.putInt(KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED, lastFragmentDisplayed);
-        outState.putParcelableArrayList(KEY_BUNDLE_CRYPTO_LIST, cryptos);
         outState.putInt(KEY_BUNDLE_TOP_TAB_POS, mBinding.tabLayoutTop.getSelectedTabPosition());
         outState.putInt(KEY_BUNDLE_BOTTOM_TAB_POS, mBinding.tabLayoutBottom.getSelectedTabPosition());
     }
 
-    @Override
-    public void onDataRefresh() {
-        Toast.makeText(this, "Data refreshed!", Toast.LENGTH_SHORT).show();
-    }
 }

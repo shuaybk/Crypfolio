@@ -8,10 +8,13 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.MarketRecyclerViewAdapter;
+import com.shuayb.capstone.android.crypfolio.DataViewModel;
 import com.shuayb.capstone.android.crypfolio.MainActivity;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.databinding.MarketviewFragmentBinding;
@@ -20,27 +23,21 @@ import java.util.ArrayList;
 
 public class MarketviewFragment extends Fragment {
     private static final String TAG = "MarketviewFragment";
-    private static final String KEY_BUNDLE_ARRAYLIST = "crypto_list";
 
     private MarketviewFragmentBinding mBinding;
-
-    ArrayList<Crypto> cryptos;
+    private DataViewModel mData;
 
 
     //Create new instance of the fragment here instead of using a custom constructor
     //Best practice is not to overwrite the default constructor (otherwise will cause errors)
-    public static final MarketviewFragment newInstance(ArrayList<Crypto> list) {
+    public static final MarketviewFragment newInstance() {
         MarketviewFragment f = new MarketviewFragment();
-        Bundle bundle = new Bundle(1);
-        bundle.putParcelableArrayList(KEY_BUNDLE_ARRAYLIST, list);
-        f.setArguments(bundle);
         return f;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        cryptos = getArguments().getParcelableArrayList(KEY_BUNDLE_ARRAYLIST);
     }
 
     @Nullable
@@ -48,16 +45,29 @@ public class MarketviewFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         mBinding = MarketviewFragmentBinding.inflate(inflater, container, false);
+        mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
 
-        initRecyclerView();
+        mData.getCryptos().observe(this, new Observer<ArrayList<Crypto>>() {
+            @Override
+            public void onChanged(ArrayList<Crypto> cryptos) {
+                setRecyclerView();
+            }
+        });
+
 
         return mBinding.getRoot();
     }
 
-    private void initRecyclerView() {
-        MarketRecyclerViewAdapter adapter = new MarketRecyclerViewAdapter(getContext(), cryptos, (MainActivity)getContext());
-        mBinding.recyclerView.setAdapter(adapter);
-        mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+    private void setRecyclerView() {
+        if (mBinding.recyclerView.getAdapter() == null) {
+            MarketRecyclerViewAdapter adapter = new MarketRecyclerViewAdapter(getContext(), mData.getCryptos().getValue(), (MainActivity) getContext());
+            mBinding.recyclerView.setAdapter(adapter);
+            mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        } else {
+            MarketRecyclerViewAdapter adapter = (MarketRecyclerViewAdapter)(mBinding.recyclerView.getAdapter());
+            adapter.updateCryptos(mData.getCryptos().getValue());
+            adapter.notifyDataSetChanged();
+        }
     }
 
 

@@ -23,4 +23,11 @@ public interface WatchlistDao {
 
     @Query("SELECT * FROM watchlist WHERE id = :id")
     Crypto getWatchlistItemById(String id);
+
+    @Query("DELETE FROM watchlist")
+    void deleteAllWatchlistItems();
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertWatchlistItemsAsList(List<Crypto> cryptos);
+
 }

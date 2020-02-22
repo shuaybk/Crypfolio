@@ -2,7 +2,9 @@ package com.shuayb.capstone.android.crypfolio;
 
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.android.volley.Request;
@@ -20,19 +22,17 @@ import java.util.ArrayList;
 public class DataViewModel extends ViewModel {
 
     private final String TAG = this.getClass().getSimpleName();
-    private ArrayList<Crypto> cryptos;
-    private OnDataRefreshedListener mCallback;
-
-    public interface OnDataRefreshedListener {
-        public void onDataRefresh();
-    }
+    private MutableLiveData<ArrayList<Crypto>> cryptos;
 
 
-    public ArrayList<Crypto> getCryptos() {
+    public MutableLiveData<ArrayList<Crypto>> getCryptos() {
+        if (cryptos == null) {
+            cryptos = new MutableLiveData<>();
+        }
         return cryptos;
     }
 
-    public void refreshCryptos(Context context) {
+    public void refreshCryptos(final Context context) {
         RequestQueue mRequestQueue = Volley.newRequestQueue(context);
 
         StringRequest mStringRequest = new StringRequest(Request.Method.GET,
@@ -40,22 +40,26 @@ public class DataViewModel extends ViewModel {
             @Override
             public void onResponse(String response) {
                 Log.d(TAG, "onResponse got this data: " + response);
-                cryptos = JsonUtils.convertJsonToCryptoList(response);
-                if (mCallback != null) {
-                    mCallback.onDataRefresh();
+                if (cryptos == null) {
+                    cryptos = new MutableLiveData<>();
                 }
+                ArrayList<Crypto> temp = JsonUtils.convertJsonToCryptoList(response);
+                temp.get(0).setCurrentPrice(Math.random());
+                cryptos.setValue(temp);
+                //cryptos.setValue(JsonUtils.convertJsonToCryptoList(response));
+                Toast.makeText(context, "The data is updated in ViewModel", Toast.LENGTH_SHORT).show();
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Log.e(TAG, "Volley Error refreshing data!!  " + error.getMessage());
+                if (cryptos == null) {  //Set empty list if we don't have old info already stored
+                    cryptos = new MutableLiveData<>();
+                    cryptos.setValue(new ArrayList<Crypto>());
+                }
             }
         });
         mRequestQueue.add(mStringRequest);
-    }
-
-    public void setCallback(OnDataRefreshedListener listener) {
-        mCallback = listener;
     }
 
     @Override

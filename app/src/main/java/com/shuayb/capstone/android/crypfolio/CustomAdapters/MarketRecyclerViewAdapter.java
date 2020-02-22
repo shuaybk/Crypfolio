@@ -38,6 +38,10 @@ public class MarketRecyclerViewAdapter
         this.marketItemClickListener = marketItemClickListener;
     }
 
+    public void updateCryptos(ArrayList<Crypto> newCryptos) {
+        this.cryptos = newCryptos;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
