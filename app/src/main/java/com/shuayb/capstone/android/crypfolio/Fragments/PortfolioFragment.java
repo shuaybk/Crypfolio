@@ -1,5 +1,6 @@
 package com.shuayb.capstone.android.crypfolio.Fragments;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -28,7 +29,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.ListenerRegistration;
 import com.shuayb.capstone.android.crypfolio.AddPortfolioItemActivity;
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.PortfolioRecyclerViewAdapter;
 import com.shuayb.capstone.android.crypfolio.DataUtils.JsonUtils;
@@ -37,7 +41,6 @@ import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.POJOs.PortfolioItem;
 import com.shuayb.capstone.android.crypfolio.databinding.PortfolioFragmentBinding;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -70,6 +73,8 @@ public class PortfolioFragment extends Fragment
     private DocumentReference portfolioRef;
     private ArrayList<Crypto> cryptos;
     private ArrayList<PortfolioItem> portfolioItems;
+    private ListenerRegistration portfolioListenerFb;
+    private Context mContext;
 
     List<AuthUI.IdpConfig> providers = Arrays.asList(
             new AuthUI.IdpConfig.EmailBuilder().build());
@@ -88,6 +93,7 @@ public class PortfolioFragment extends Fragment
         authFb = FirebaseAuth.getInstance();
         dbf = FirebaseFirestore.getInstance();
         cryptos = getArguments().getParcelableArrayList(KEY_BUNDLE_ARRAYLIST);
+        mContext = getContext();
     }
 
     @Nullable
@@ -102,6 +108,7 @@ public class PortfolioFragment extends Fragment
         return mBinding.getRoot();
     }
 
+
     private void initViews() {
         mBinding.backgroundCover.setVisibility(View.GONE);
         mBinding.backgroundCover.setAlpha(0.5f);
@@ -111,6 +118,10 @@ public class PortfolioFragment extends Fragment
             mBinding.mainContentContainer.setVisibility(View.GONE);
         } else {
             portfolioRef = dbf.collection("users").document(userFb.getUid());
+            if (portfolioListenerFb == null) {
+                registerPortfolioListener();
+            }
+
             mBinding.signInPrompt.setVisibility(View.GONE);
             mBinding.mainContentContainer.setVisibility(View.VISIBLE);
             fetchPortfolioInfo();
@@ -137,10 +148,22 @@ public class PortfolioFragment extends Fragment
         });
     }
 
-    private void initRecyclerView() {
-        PortfolioRecyclerViewAdapter adapter = new PortfolioRecyclerViewAdapter(getContext(), portfolioItems, this);
-        mBinding.recyclerView.setAdapter(adapter);
-        mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+    private void setRecyclerView() {
+        if (mBinding.recyclerView.getAdapter() == null) {  //Initial setup
+            PortfolioRecyclerViewAdapter adapter = new PortfolioRecyclerViewAdapter(getContext(), portfolioItems, this);
+            mBinding.recyclerView.setAdapter(adapter);
+            mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        } else {  //Just update it
+            PortfolioRecyclerViewAdapter adapter = (PortfolioRecyclerViewAdapter)(mBinding.recyclerView.getAdapter());
+            adapter.updatePortfolioItems(portfolioItems);
+            adapter.notifyDataSetChanged();
+        }
+    }
+
+    //Helper method to process data on a DB change event
+    private void onDbChangeEvent(DocumentSnapshot result) {
+        generatePortfolioItems(result.getData());
     }
 
     //First get the Portfolio info from Firebase here
@@ -199,7 +222,7 @@ public class PortfolioFragment extends Fragment
 
         //Look up the price info for our portfolio items (if any)
         if (ids.length() > 0) {
-            RequestQueue mRequestQueue = Volley.newRequestQueue(getContext());
+            RequestQueue mRequestQueue = Volley.newRequestQueue(mContext);
 
             StringRequest mStringRequest = new StringRequest(Request.Method.GET,
                     NetworkUtils.getUrlForPortfolioData(ids.toString()), new Response.Listener<String>() {
@@ -218,8 +241,8 @@ public class PortfolioFragment extends Fragment
                         portfolioItems.add(item);
                     }
 
-                    //Now we have all the info needed, can finish initializing views
-                    initRecyclerView();
+                    //Now we have all the info needed, we can finish setting up / updating the views
+                    setRecyclerView();
                 }
             }, new Response.ErrorListener() {
                 @Override
@@ -272,10 +295,48 @@ public class PortfolioFragment extends Fragment
                 });
     }
 
+
+    private void registerPortfolioListener() {
+        if (portfolioRef != null) {
+            portfolioListenerFb = portfolioRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                @Override
+                public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
+                    if (e != null) {
+                        Toast.makeText(getContext(), "Error on DB listener event", Toast.LENGTH_LONG);
+                        Log.w(TAG, e.toString());
+                        return;
+                    }
+                    if (documentSnapshot.exists()) {
+                        onDbChangeEvent(documentSnapshot);
+                    }
+                }
+            });
+        }
+    }
+
+    private void unregisterPortfolioListener() {
+        if (portfolioListenerFb != null) {
+            portfolioListenerFb.remove();
+        }
+    }
+
     private void dismissDialog() {
         FragmentManager fm = getFragmentManager();
         DeletePortfolioItemFragment fragment = (DeletePortfolioItemFragment)(fm.findFragmentByTag(DELETE_DIALOG_FRAGMENT_TAG));
         fragment.dismiss();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        registerPortfolioListener();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        unregisterPortfolioListener();
     }
 
     @Override
@@ -339,6 +400,8 @@ public class PortfolioFragment extends Fragment
     //From the Portfolio delete item dialog fragment
     @Override
     public void onDeleteClicked(final PortfolioItem item) {
+        dismissDialog();
+
         portfolioRef.get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
@@ -352,7 +415,6 @@ public class PortfolioFragment extends Fragment
                         }
                     }
                 });
-        dismissDialog();
     }
 
     //From the Portfolio delete item dialog fragment

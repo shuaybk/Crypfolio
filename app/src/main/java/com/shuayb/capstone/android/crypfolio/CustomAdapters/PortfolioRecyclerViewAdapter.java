@@ -42,6 +42,10 @@ public class PortfolioRecyclerViewAdapter
         this.portfolioItemClickListener = portfolioItemClickListener;
     }
 
+    public void updatePortfolioItems(ArrayList<PortfolioItem> newItems) {
+        portfolioItems = newItems;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

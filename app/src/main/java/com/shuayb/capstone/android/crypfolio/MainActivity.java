@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity
     private WatchlistFragment watchlistFragment;
     private PortfolioFragment portfolioFragment;
     private DetailsFragment detailsFragment;
+    private Thread refreshThread;
 
     ArrayList<Crypto> cryptos = new ArrayList<>();
 
@@ -67,13 +68,61 @@ public class MainActivity extends AppCompatActivity
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
-
         if (savedInstanceState != null) {
             restoreSetup(savedInstanceState);
         } else {
             initialSetup();
         }
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        refreshThread = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    while (!refreshThread.isInterrupted()) {
+                        Thread.sleep(5000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                updateCryptoInfo();
+                            }
+                        });
+                    }
+                } catch (InterruptedException e) {
+                    Toast.makeText(getApplicationContext(), "Error refreshing data", Toast.LENGTH_SHORT).show();
+                    Log.w(TAG, "Error trying to refresh data in thread: " + e.getMessage());
+                }
+            }
+        };
+        refreshThread.start();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        refreshThread.interrupt();
+    }
+
+    public void updateCryptoInfo() {
+        RequestQueue mRequestQueue = Volley.newRequestQueue(this);
+
+        StringRequest mStringRequest = new StringRequest(Request.Method.GET,
+                NetworkUtils.getUrlForMarketviewData(), new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "onResponse got this data: " + response);
+                cryptos = JsonUtils.convertJsonToCryptoList(response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, "Volley Error refreshing data!!  " + error.getMessage());
+            }
+        });
+        mRequestQueue.add(mStringRequest);
     }
 
     private void initialSetup() {
@@ -281,6 +330,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setDetailsFragment(Crypto crypto) {
+        detailsFragment.updateCrypto(crypto);
         setFragment(detailsFragment);
         setDetailsFragmentViews();
     }

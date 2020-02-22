@@ -35,6 +35,7 @@ public class DetailsFragment extends Fragment {
     private static final String TAG = "DetailsFragment";
     private static final String KEY_BUNDLE_CRYPTO = "crypto_key";
     private static final String KEY_BUNDLE_CHART = "chart_key";
+    private static final String KEY_BUNDLE_FIRST_TIME = "first_time";
 
     private AppDatabase mDb;
 
@@ -43,6 +44,7 @@ public class DetailsFragment extends Fragment {
     boolean isWatchlistItem = false;
     Menu menu;
     Chart chart;
+    boolean newCrypto = true;
 
     public static final DetailsFragment newInstance(Crypto crypto) {
         DetailsFragment f = new DetailsFragment();
@@ -52,7 +54,6 @@ public class DetailsFragment extends Fragment {
         return f;
     }
 
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -61,11 +62,14 @@ public class DetailsFragment extends Fragment {
 
         if (savedInstanceState != null) {
             chart = savedInstanceState.getParcelable(KEY_BUNDLE_CHART);
+            crypto = savedInstanceState.getParcelable(KEY_BUNDLE_CRYPTO);
+            newCrypto = savedInstanceState.getBoolean(KEY_BUNDLE_FIRST_TIME);
         }
 
         if (crypto != null) {
-            initViews();
             setHasOptionsMenu(true);
+            initViews(newCrypto);
+            newCrypto = false;
         }
         return mBinding.getRoot();
     }
@@ -76,9 +80,15 @@ public class DetailsFragment extends Fragment {
         crypto = getArguments().getParcelable(KEY_BUNDLE_CRYPTO);
     }
 
+    //To set the crypto to be displayed
+    public void updateCrypto(Crypto crypto) {
+        this.crypto = crypto;
+        newCrypto = true;
+    }
+
     //Helper method to initialize the views with crypto information
-    private void initViews() {
-        setChart();
+    private void initViews(boolean firstTime) {
+        setChart(firstTime);
         mBinding.symbolText.setText(crypto.getSymbol().toUpperCase());
         mBinding.priceText.setText("$" + RandomUtils.getFormattedCurrencyAmount(crypto.getCurrentPrice()));
         mBinding.marketcapText.setText("Market Cap: " + crypto.getFormattedMarketcapFull());
@@ -89,10 +99,10 @@ public class DetailsFragment extends Fragment {
         mBinding.athText.setText("ATH: " + crypto.getAth() + " on " + crypto.getAthDate());
         mBinding.lastUpdatedText.setText("Last Updated: " + crypto.getLastUpdated());
 
-        getActivity().getActionBar().setTitle(crypto.getName());
+        getActivity().setTitle(crypto.getName());
     }
 
-    private void setChart() {
+    private void setChart(final boolean firstTime) {
         if (chart == null) {
             RequestQueue mRequestQueue = Volley.newRequestQueue(getContext());
 
@@ -103,7 +113,7 @@ public class DetailsFragment extends Fragment {
                     Log.d(TAG, "onResponse got this data: " + response);
 
                     chart = JsonUtils.convertJsonToChart(response);
-                    displayChart();
+                    displayChart(firstTime);
                 }
             }, new Response.ErrorListener() {
                 @Override
@@ -113,13 +123,17 @@ public class DetailsFragment extends Fragment {
             });
             mRequestQueue.add(mStringRequest);
         } else {
-            displayChart();
+            displayChart(firstTime);
         }
     }
 
-    private void displayChart() {
+    private void displayChart(boolean firstTime) {
         LineDataSet lineDataSet = new LineDataSet(chart.getPrices(), "Prices (USD)");
-        mBinding.chart.animateY(1000);
+        if (firstTime) {
+            mBinding.chart.animateY(500);
+        } else {
+            mBinding.chart.animateY(1);
+        }
         LineData lineData = new LineData(chart.getTimes(), lineDataSet);
         mBinding.chart.setData(lineData);
     }
@@ -206,5 +220,7 @@ public class DetailsFragment extends Fragment {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelable(KEY_BUNDLE_CHART, chart);
+        outState.putParcelable(KEY_BUNDLE_CRYPTO, crypto);
+        outState.putBoolean(KEY_BUNDLE_FIRST_TIME, newCrypto);
     }
 }
