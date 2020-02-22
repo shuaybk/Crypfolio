@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -31,7 +32,8 @@ import java.util.ArrayList;
 
 
 public class MainActivity extends AppCompatActivity
-        implements MarketRecyclerViewAdapter.MarketItemClickListener {
+        implements MarketRecyclerViewAdapter.MarketItemClickListener,
+                DataViewModel.OnDataRefreshedListener {
 
     private static final String TAG = "MainActivity";
 
@@ -57,6 +59,7 @@ public class MainActivity extends AppCompatActivity
     private PortfolioFragment portfolioFragment;
     private DetailsFragment detailsFragment;
     private Thread refreshThread;
+    private DataViewModel mData;
 
     ArrayList<Crypto> cryptos = new ArrayList<>();
 
@@ -67,6 +70,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
+        mData = ViewModelProviders.of(this).get(DataViewModel.class);
 
         if (savedInstanceState != null) {
             restoreSetup(savedInstanceState);
@@ -74,6 +78,19 @@ public class MainActivity extends AppCompatActivity
             initialSetup();
         }
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mData.setCallback(null);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mData.setCallback(this);
+    }
+
 
     @Override
     protected void onStart() {
@@ -87,12 +104,11 @@ public class MainActivity extends AppCompatActivity
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                updateCryptoInfo();
+                                mData.refreshCryptos(getApplicationContext());
                             }
                         });
                     }
                 } catch (InterruptedException e) {
-                    Toast.makeText(getApplicationContext(), "Error refreshing data", Toast.LENGTH_SHORT).show();
                     Log.w(TAG, "Error trying to refresh data in thread: " + e.getMessage());
                 }
             }
@@ -403,5 +419,10 @@ public class MainActivity extends AppCompatActivity
         outState.putParcelableArrayList(KEY_BUNDLE_CRYPTO_LIST, cryptos);
         outState.putInt(KEY_BUNDLE_TOP_TAB_POS, mBinding.tabLayoutTop.getSelectedTabPosition());
         outState.putInt(KEY_BUNDLE_BOTTOM_TAB_POS, mBinding.tabLayoutBottom.getSelectedTabPosition());
+    }
+
+    @Override
+    public void onDataRefresh() {
+        Toast.makeText(this, "Data refreshed!", Toast.LENGTH_SHORT).show();
     }
 }
