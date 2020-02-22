@@ -2,7 +2,6 @@ package com.shuayb.capstone.android.crypfolio;
 
 import android.content.Context;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -23,13 +22,28 @@ public class DataViewModel extends ViewModel {
 
     private final String TAG = this.getClass().getSimpleName();
     private MutableLiveData<ArrayList<Crypto>> cryptos;
+    private MutableLiveData<ArrayList<Crypto>> portfolioItemsMoreDetails;
 
 
     public MutableLiveData<ArrayList<Crypto>> getCryptos() {
         if (cryptos == null) {
             cryptos = new MutableLiveData<>();
+            cryptos.setValue(new ArrayList<Crypto>());
         }
         return cryptos;
+    }
+
+    public MutableLiveData<ArrayList<Crypto>> getPortfolioItemsMoreDetails() {
+        if (portfolioItemsMoreDetails == null) {
+            portfolioItemsMoreDetails = new MutableLiveData<>();
+            portfolioItemsMoreDetails.setValue(new ArrayList<Crypto>());
+        }
+        return portfolioItemsMoreDetails;
+    }
+
+    public void clearPortfolioItemsMoreDetails() {
+        portfolioItemsMoreDetails = new MutableLiveData<>();
+        portfolioItemsMoreDetails.setValue(new ArrayList<Crypto>());
     }
 
     public void refreshCryptos(final Context context) {
@@ -39,10 +53,11 @@ public class DataViewModel extends ViewModel {
                 NetworkUtils.getUrlForMarketviewData(), new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
-                Log.d(TAG, "onResponse got this data: " + response);
+                Log.d(TAG, "refreshCryptos: onResponse got this data: " + response);
                 if (cryptos == null) {
                     cryptos = new MutableLiveData<>();
                 }
+                //TODO - Delete this part that randomizes the first value
                 ArrayList<Crypto> temp = JsonUtils.convertJsonToCryptoList(response);
                 temp.get(0).setCurrentPrice(Math.random());
                 cryptos.setValue(temp);
@@ -55,6 +70,38 @@ public class DataViewModel extends ViewModel {
                 if (cryptos == null) {  //Set empty list if we don't have old info already stored
                     cryptos = new MutableLiveData<>();
                     cryptos.setValue(new ArrayList<Crypto>());
+                }
+            }
+        });
+        mRequestQueue.add(mStringRequest);
+    }
+
+    public void refreshPortfolioItems(final Context context, String ids) {
+        RequestQueue mRequestQueue = Volley.newRequestQueue(context);
+
+        StringRequest mStringRequest = new StringRequest(Request.Method.GET,
+                NetworkUtils.getUrlForPortfolioData(ids.toString()), new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Log.d(TAG, "refreshPortfolio: onResponse got this data: " + response);
+                if (portfolioItemsMoreDetails == null) {
+                    portfolioItemsMoreDetails = new MutableLiveData<>();
+                }
+                ArrayList<Crypto> temp = JsonUtils.convertJsonToCryptoList(response);
+                //TODO - Delete this part that randomizes the first value
+                if (temp.size() > 0) {
+                    temp.get(0).setCurrentPrice(Math.random());
+                }
+                portfolioItemsMoreDetails.setValue(temp);
+                //portfolioItemsMoreDetails.setValue(JsonUtils.convertJsonToCryptoList(response));
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e(TAG, "Volley Error in refreshPortfolioItems!!!!!!!! " + error.getMessage());
+                if (portfolioItemsMoreDetails == null) {
+                    portfolioItemsMoreDetails = new MutableLiveData<>();
+                    portfolioItemsMoreDetails.setValue(new ArrayList<Crypto>());
                 }
             }
         });

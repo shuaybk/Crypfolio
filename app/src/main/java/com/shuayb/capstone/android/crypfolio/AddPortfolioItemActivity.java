@@ -4,9 +4,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -27,14 +31,14 @@ public class AddPortfolioItemActivity extends AppCompatActivity
 
     private static final String TAG = "AddPortfolioItemActivity";
 
-    private static final String KEY_BUNDLE_ARRAYLIST = "crypto_list";
     private static final String FRAGMENT_DIALOG_TAG = "add_portfolio_item_fragment";
     private static final String KEY_CRYPTO_ID = "key_crypto_id";
     private static final String KEY_AMOUNT = "key_amount";
     private static final String KEY_PURCHASE_PRICE = "key_purchase_price";
 
-    private ArrayList<Crypto> cryptos;
     private ActivityAddPortfolioItemBinding mBinding;
+    private DataViewModel mData;
+    MutableLiveData<ArrayList<Crypto>> cryptoLD;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,18 +47,35 @@ public class AddPortfolioItemActivity extends AppCompatActivity
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_add_portfolio_item);
-
+        mData = ViewModelProviders.of(this).get(DataViewModel.class);
         Intent parentIntent = getIntent();
-        cryptos = parentIntent.getParcelableArrayListExtra(KEY_BUNDLE_ARRAYLIST);
 
-        initViews();
+        setDataObservers();
+    }
+
+    private void setDataObservers() {
+        mData.refreshCryptos(this);
+
+        //Just get the updated info once so we can populate the list
+        //We don't need to keep updating it, so unregister the observer after first
+        //successful data response
+        cryptoLD = mData.getCryptos();
+        cryptoLD.observe(this, new Observer<ArrayList<Crypto>>() {
+            @Override
+            public void onChanged(ArrayList<Crypto> cryptos) {
+                if (cryptos.size() > 0) {
+                    cryptoLD.removeObserver(this);
+                    initViews();
+                }
+            }
+        });
     }
 
     private void initViews() {
         mBinding.backgroundCover.setVisibility(View.GONE);
         mBinding.backgroundCover.setAlpha(0.5f);
 
-        MarketRecyclerViewAdapter adapter = new MarketRecyclerViewAdapter(this, cryptos, this);
+        MarketRecyclerViewAdapter adapter = new MarketRecyclerViewAdapter(this, cryptoLD.getValue(), this);
         mBinding.recyclerView.setAdapter(adapter);
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
     }

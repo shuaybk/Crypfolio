@@ -122,7 +122,7 @@ public class MainActivity extends AppCompatActivity
     private void initialSetup() {
         marketviewFragment = MarketviewFragment.newInstance();
         watchlistFragment = WatchlistFragment.newInstance();
-        portfolioFragment = PortfolioFragment.newInstance(mData.getCryptos().getValue());
+        portfolioFragment = PortfolioFragment.newInstance();
         detailsFragment = DetailsFragment.newInstance(null);
 
         FragmentManager fm = getSupportFragmentManager();
