@@ -37,6 +37,7 @@ import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.POJOs.PortfolioItem;
 import com.shuayb.capstone.android.crypfolio.databinding.PortfolioFragmentBinding;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -68,7 +69,7 @@ public class PortfolioFragment extends Fragment
     private FirebaseFirestore dbf;
     private DocumentReference portfolioRef;
     private ArrayList<Crypto> cryptos;
-    private HashMap<String, PortfolioItem> portfolioItems;
+    private ArrayList<PortfolioItem> portfolioItems;
 
     List<AuthUI.IdpConfig> providers = Arrays.asList(
             new AuthUI.IdpConfig.EmailBuilder().build());
@@ -136,8 +137,8 @@ public class PortfolioFragment extends Fragment
         });
     }
 
-    private void initRecyclerView(ArrayList<Crypto> portfolioList) {
-        PortfolioRecyclerViewAdapter adapter = new PortfolioRecyclerViewAdapter(getContext(), portfolioList, portfolioItems, this);
+    private void initRecyclerView() {
+        PortfolioRecyclerViewAdapter adapter = new PortfolioRecyclerViewAdapter(getContext(), portfolioItems, this);
         mBinding.recyclerView.setAdapter(adapter);
         mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
     }
@@ -155,7 +156,7 @@ public class PortfolioFragment extends Fragment
                             }
                             generatePortfolioItems(docData);
                         } else {
-                            portfolioItems = new HashMap<>(); //Empty list
+                            portfolioItems = new ArrayList<>(); //Empty list to not throw null errors
                             mBinding.signInPrompt.setVisibility(View.GONE);
                             mBinding.mainContentContainer.setVisibility(View.GONE);
                             mBinding.errorMessage.setVisibility(View.VISIBLE);
@@ -168,7 +169,7 @@ public class PortfolioFragment extends Fragment
     //Generate the portfolio items from Firebase info
     //and fetch the remaining needed info from CoinGecko
     private void generatePortfolioItems(Map<String, Object> dataMap) {
-        portfolioItems = new HashMap<>();
+        final HashMap<String, PortfolioItem> mapItems = new HashMap<>();
         String id;
         String name;
         String image;
@@ -187,7 +188,7 @@ public class PortfolioFragment extends Fragment
             avgPrice = list.get(DB_PRICE_INDEX);
             currentPrice = -1;
             PortfolioItem item = new PortfolioItem(id, name, image, amount, avgPrice, currentPrice);
-            portfolioItems.put(id, item);
+            mapItems.put(id, item);
 
             if (ids.length() == 0) {
                 ids.append(id);
@@ -205,17 +206,20 @@ public class PortfolioFragment extends Fragment
                 @Override
                 public void onResponse(String response) {
                     Log.d(TAG, "onResponse got this data: " + response);
-                    ArrayList<Crypto> portfolioList = JsonUtils.convertJsonToCryptoList(response);
+                    ArrayList<Crypto> portfolioAdditionalData = JsonUtils.convertJsonToCryptoList(response);
+                    portfolioItems = new ArrayList<>();
 
-                    for (Crypto c : portfolioList) {
-                        PortfolioItem item = portfolioItems.get(c.getId());
+                    //Combine details from Map and list above to generate full Portfolio Item list (using map because its O(n))
+                    for (Crypto c : portfolioAdditionalData) {
+                        PortfolioItem item = mapItems.get(c.getId());
                         item.setName(c.getName());
                         item.setImage(c.getImage());
                         item.setCurrentPrice(c.getCurrentPrice());
-                        portfolioItems.put(c.getId(), item);
+                        portfolioItems.add(item);
                     }
+
                     //Now we have all the info needed, can finish initializing views
-                    initRecyclerView(portfolioList);
+                    initRecyclerView();
                 }
             }, new Response.ErrorListener() {
                 @Override

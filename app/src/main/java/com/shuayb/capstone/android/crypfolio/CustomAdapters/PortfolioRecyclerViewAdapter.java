@@ -25,8 +25,7 @@ public class PortfolioRecyclerViewAdapter
 
     private static final String TAG = "PortfolioRecyclerViewAdapter";
 
-    private ArrayList<Crypto> portfolioItems;
-    private HashMap<String,PortfolioItem> portfolioMap;
+    private ArrayList<PortfolioItem> portfolioItems;
     private Context mContext;
 
     private PortfolioItemClickListener portfolioItemClickListener;
@@ -36,11 +35,10 @@ public class PortfolioRecyclerViewAdapter
         void onPortfolioItemLongClick(PortfolioItem portfolioItem);
     }
 
-    public PortfolioRecyclerViewAdapter(Context mContext, ArrayList<Crypto> portfolioItems, HashMap<String,PortfolioItem> portfolioMap,
-                                     PortfolioItemClickListener portfolioItemClickListener) {
+    public PortfolioRecyclerViewAdapter(Context mContext, ArrayList<PortfolioItem> portfolioItems,
+                                        PortfolioItemClickListener portfolioItemClickListener) {
         this.mContext = mContext;
         this.portfolioItems = portfolioItems;
-        this.portfolioMap = portfolioMap;
         this.portfolioItemClickListener = portfolioItemClickListener;
     }
 
@@ -55,8 +53,7 @@ public class PortfolioRecyclerViewAdapter
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
 
-        Crypto crypto = portfolioItems.get(position);
-        PortfolioItem item = portfolioMap.get(crypto.getId());
+        PortfolioItem item = portfolioItems.get(position);
 
         String netChange = RandomUtils.getNetChangeAmount(item.getAmount(), item.getAvgPrice(), item.getCurrentPrice())
                 + " (" + RandomUtils.getNetChangePercentage(item.getAmount(), item.getAvgPrice(), item.getCurrentPrice())
@@ -101,15 +98,15 @@ public class PortfolioRecyclerViewAdapter
 
         @Override
         public void onClick(View v) {
-            Crypto crypto = portfolioItems.get(getAdapterPosition());
-            PortfolioItem item = portfolioMap.get(crypto.getId());
+            PortfolioItem item = portfolioItems.get(getAdapterPosition());
+
             portfolioItemClickListener.onPortfolioItemClick(item);
         }
 
         @Override
         public boolean onLongClick(View v) {
-            Crypto crypto = portfolioItems.get(getAdapterPosition());
-            PortfolioItem item = portfolioMap.get(crypto.getId());
+            PortfolioItem item = portfolioItems.get(getAdapterPosition());
+
             portfolioItemClickListener.onPortfolioItemLongClick(item);
             return true;
         }
