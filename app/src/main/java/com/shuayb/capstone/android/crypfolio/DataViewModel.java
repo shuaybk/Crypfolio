@@ -47,7 +47,6 @@ public class DataViewModel extends ViewModel {
                 temp.get(0).setCurrentPrice(Math.random());
                 cryptos.setValue(temp);
                 //cryptos.setValue(JsonUtils.convertJsonToCryptoList(response));
-                Toast.makeText(context, "The data is updated in ViewModel", Toast.LENGTH_SHORT).show();
             }
         }, new Response.ErrorListener() {
             @Override

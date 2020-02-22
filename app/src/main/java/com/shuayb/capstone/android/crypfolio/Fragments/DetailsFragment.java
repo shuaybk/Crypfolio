@@ -9,10 +9,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProviders;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -25,11 +28,14 @@ import com.github.mikephil.charting.data.LineDataSet;
 import com.shuayb.capstone.android.crypfolio.DataUtils.JsonUtils;
 import com.shuayb.capstone.android.crypfolio.DataUtils.NetworkUtils;
 import com.shuayb.capstone.android.crypfolio.DataUtils.RandomUtils;
+import com.shuayb.capstone.android.crypfolio.DataViewModel;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.AppDatabase;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.POJOs.Chart;
 import com.shuayb.capstone.android.crypfolio.R;
 import com.shuayb.capstone.android.crypfolio.databinding.DetailsFragmentBinding;
+
+import java.util.ArrayList;
 
 public class DetailsFragment extends Fragment {
     private static final String TAG = "DetailsFragment";
@@ -38,13 +44,14 @@ public class DetailsFragment extends Fragment {
     private static final String KEY_BUNDLE_FIRST_TIME = "first_time";
 
     private AppDatabase mDb;
+    private DataViewModel mData;
 
-    DetailsFragmentBinding mBinding;
-    Crypto crypto;
-    boolean isWatchlistItem = false;
-    Menu menu;
-    Chart chart;
-    boolean newCrypto = true;
+    private DetailsFragmentBinding mBinding;
+    private Crypto crypto;
+    private boolean isWatchlistItem = false;
+    private Menu menu;
+    private Chart chart;
+    private boolean newCrypto = true;
 
     public static final DetailsFragment newInstance(Crypto crypto) {
         DetailsFragment f = new DetailsFragment();
@@ -59,6 +66,8 @@ public class DetailsFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mBinding = DetailsFragmentBinding.inflate(inflater, container, false);
         mDb = AppDatabase.getInstance(getContext());
+        mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
+
 
         if (savedInstanceState != null) {
             chart = savedInstanceState.getParcelable(KEY_BUNDLE_CHART);
@@ -68,9 +77,11 @@ public class DetailsFragment extends Fragment {
 
         if (crypto != null) {
             setHasOptionsMenu(true);
-            initViews(newCrypto);
+            initViews(newCrypto, true);
             newCrypto = false;
+            setDataObservers();
         }
+
         return mBinding.getRoot();
     }
 
@@ -80,6 +91,33 @@ public class DetailsFragment extends Fragment {
         crypto = getArguments().getParcelable(KEY_BUNDLE_CRYPTO);
     }
 
+    private void setDataObservers() {
+        mData.getCryptos().observe(this, new Observer<ArrayList<Crypto>>() {
+            @Override
+            public void onChanged(ArrayList<Crypto> cryptos) {
+                Crypto match = null;
+                for (Crypto c: cryptos) {
+                    if (c.getId().equals(crypto.getId())) {
+                        match = c;
+                        break;
+                    }
+                }
+
+                //Only if crypto is still in the top 100 will it update
+                if (match != null) {
+                    crypto = match;
+                    initViews(false, false);
+                    if (chart != null) {
+                        displayChart(false);
+                    }
+
+                } else {
+                    Toast.makeText(getContext(), "Couldn't update details for this crypto", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
     //To set the crypto to be displayed
     public void updateCrypto(Crypto crypto) {
         this.crypto = crypto;
@@ -87,8 +125,10 @@ public class DetailsFragment extends Fragment {
     }
 
     //Helper method to initialize the views with crypto information
-    private void initViews(boolean firstTime) {
-        setChart(firstTime);
+    private void initViews(boolean firstTime, boolean setChartToo) {
+        if (setChartToo) {
+            setChart(firstTime);
+        }
         mBinding.symbolText.setText(crypto.getSymbol().toUpperCase());
         mBinding.priceText.setText("$" + RandomUtils.getFormattedCurrencyAmount(crypto.getCurrentPrice()));
         mBinding.marketcapText.setText("Market Cap: " + crypto.getFormattedMarketcapFull());
