@@ -12,6 +12,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
@@ -50,7 +52,11 @@ public class AddPortfolioItemActivity extends AppCompatActivity
         mData = ViewModelProviders.of(this).get(DataViewModel.class);
         Intent parentIntent = getIntent();
 
-        setDataObservers();
+        if (isConnectedToInternet()) {
+            setDataObservers();
+        } else {
+            showError();
+        }
     }
 
     private void setDataObservers() {
@@ -102,6 +108,16 @@ public class AddPortfolioItemActivity extends AppCompatActivity
         mBinding.backgroundCover.setVisibility(View.VISIBLE);
     }
 
+    public boolean isConnectedToInternet() {
+        ConnectivityManager conMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = conMgr.getActiveNetworkInfo();
+
+        if (netInfo == null) {
+            return false;
+        }
+        return true;
+    }
+
     //Data already verified
     @Override
     public void onSubmitPressed(String cryptoId, double amount, double purchasePrice) {
@@ -121,5 +137,15 @@ public class AddPortfolioItemActivity extends AppCompatActivity
     @Override
     public void onDismissed() {
         mBinding.backgroundCover.setVisibility(View.GONE);
+    }
+
+    private void showError() {
+        mBinding.mainContainer.setVisibility(View.GONE);
+        mBinding.errorContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void removeError() {
+        mBinding.mainContainer.setVisibility(View.VISIBLE);
+        mBinding.errorContainer.setVisibility(View.GONE);
     }
 }

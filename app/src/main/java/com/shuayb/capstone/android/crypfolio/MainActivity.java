@@ -1,7 +1,10 @@
 package com.shuayb.capstone.android.crypfolio;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -84,9 +87,7 @@ public class MainActivity extends AppCompatActivity
             public void onChanged(ArrayList<Crypto> cryptos) {
 
                 if (marketviewFragment == null) {  //Initial setup
-                    if (mData.getCryptos().getValue().isEmpty() == false) {
-                        initialSetup();
-                    }
+                    initialSetup();
                 } else {
                     //Update whatever needs new crypto info
                 }
@@ -95,6 +96,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     //Start a thread to refresh the crypto info every x seconds
+    //Display error if no connection
     @Override
     protected void onStart() {
         super.onStart();
@@ -103,6 +105,10 @@ public class MainActivity extends AppCompatActivity
         String timeKey = getString(R.string.key_refresh_time);
         refreshTime = Integer.parseInt(preferences.getString(timeKey, defaultTime)) * 1000;
         Toast.makeText(this, "Refresh time is every " + refreshTime + "ms", Toast.LENGTH_LONG).show();
+
+        if (!isConnectedToInternet()) {
+            showError();
+        }
 
         refreshThread = new Thread() {
             @Override
@@ -113,7 +119,12 @@ public class MainActivity extends AppCompatActivity
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                mData.refreshCryptos(getApplicationContext());
+                                if (isConnectedToInternet()) {
+                                    showMainContent();
+                                    mData.refreshCryptos(getApplicationContext());
+                                } else {
+                                    showError();
+                                }
                             }
                         });
                     }
@@ -208,6 +219,10 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
 
+                if (!isConnectedToInternet()) {
+                    showError();
+                }
+
                 switch (mBinding.tabLayoutBottom.getSelectedTabPosition()) {
                     case 0:     //Markets tab
                         if (mBinding.tabLayoutTop.getSelectedTabPosition() == 0) {
@@ -249,6 +264,10 @@ public class MainActivity extends AppCompatActivity
         mBinding.tabLayoutTop.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
+
+                if (!isConnectedToInternet()) {
+                    showError();
+                }
 
                 switch (mBinding.tabLayoutTop.getSelectedTabPosition()) {
                     case 0:  //Market View tab
@@ -306,6 +325,16 @@ public class MainActivity extends AppCompatActivity
         } else if (fragment instanceof DetailsFragment) {
             lastFragmentDisplayed = FRAG_DETAILS;
         }
+    }
+
+    public boolean isConnectedToInternet() {
+        ConnectivityManager conMgr = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = conMgr.getActiveNetworkInfo();
+
+        if (netInfo == null) {
+            return false;
+        }
+        return true;
     }
 
     private void setMarketviewFragment() {
@@ -384,9 +413,12 @@ public class MainActivity extends AppCompatActivity
     public void onMarketItemClick(Crypto crypto) {
         //Display the details tab for the selected crypto
         //Also hide the top and bottom tabs
-        setDetailsFragment(crypto);
+        if (isConnectedToInternet()) {
+            setDetailsFragment(crypto);
+        } else {
+            showError();
+        }
     }
-
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -403,4 +435,13 @@ public class MainActivity extends AppCompatActivity
         outState.putInt(KEY_BUNDLE_PREV_BOTTOM_TAB_POS, prevBottomTabPos);
     }
 
+    private void showError() {
+        mBinding.mainContainer.setVisibility(View.GONE);
+        mBinding.errorContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void showMainContent() {
+        mBinding.errorContainer.setVisibility(View.GONE);
+        mBinding.mainContainer.setVisibility(View.VISIBLE);
+    }
 }
