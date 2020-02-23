@@ -5,6 +5,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -18,12 +21,6 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -38,11 +35,10 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.shuayb.capstone.android.crypfolio.AddPortfolioItemActivity;
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.PortfolioRecyclerViewAdapter;
-import com.shuayb.capstone.android.crypfolio.DataUtils.JsonUtils;
-import com.shuayb.capstone.android.crypfolio.DataUtils.NetworkUtils;
 import com.shuayb.capstone.android.crypfolio.DataViewModel;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.POJOs.PortfolioItem;
+import com.shuayb.capstone.android.crypfolio.R;
 import com.shuayb.capstone.android.crypfolio.databinding.PortfolioFragmentBinding;
 
 import java.util.ArrayList;
@@ -79,6 +75,8 @@ public class PortfolioFragment extends Fragment
     private ListenerRegistration portfolioListenerFb;
     private Context mContext;
     private DocumentSnapshot lastResult;
+    MutableLiveData<ArrayList<Crypto>> cryptoLD;
+    Observer<ArrayList<Crypto>> cryptoObserver;
 
     List<AuthUI.IdpConfig> providers = Arrays.asList(
             new AuthUI.IdpConfig.EmailBuilder().build());
@@ -102,40 +100,30 @@ public class PortfolioFragment extends Fragment
         mBinding = PortfolioFragmentBinding.inflate(inflater, container, false);
 
         mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
-        userFb = authFb.getCurrentUser();
 
         initViews();
-
-        setDataObservers();
 
         return mBinding.getRoot();
     }
 
-    //Observe the crypto updates.  Every time crypto updates, so should the portfolio
-    //so refresh the portfolio on update
-    private void setDataObservers() {
-        MutableLiveData<ArrayList<Crypto>> cryptoLD = mData.getCryptos();
-        cryptoLD.observe(this, new Observer<ArrayList<Crypto>>() {
-            @Override
-            public void onChanged(ArrayList<Crypto> portfolioItemsMoreDetails) {
-                fetchPortfolioInfo();
-            }
-        });
-    }
-
 
     private void initViews() {
+        userFb = authFb.getCurrentUser();
         mBinding.backgroundCover.setVisibility(View.GONE);
         mBinding.backgroundCover.setAlpha(0.5f);
 
         if (userFb == null) {
             mBinding.signInPrompt.setVisibility(View.VISIBLE);
             mBinding.mainContentContainer.setVisibility(View.GONE);
+            unregisterPortfolioListener();
+            unregisterDataObservers();
+            setHasOptionsMenu(false);
+            portfolioRef = null;
         } else {
+            setHasOptionsMenu(true); //to display sign out button
             portfolioRef = dbf.collection("users").document(userFb.getUid());
-            if (portfolioListenerFb == null) {
-                registerPortfolioListener();
-            }
+            registerPortfolioListener();
+            registerDataObservers();
 
             mBinding.signInPrompt.setVisibility(View.GONE);
             mBinding.mainContentContainer.setVisibility(View.VISIBLE);
@@ -162,6 +150,13 @@ public class PortfolioFragment extends Fragment
         });
     }
 
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        inflater.inflate(R.menu.portfolio_menu, menu);
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
     private void setRecyclerView() {
         if (mBinding.recyclerView.getAdapter() == null) {  //Initial setup
             PortfolioRecyclerViewAdapter adapter = new PortfolioRecyclerViewAdapter(getContext(), portfolioItems, this);
@@ -173,6 +168,27 @@ public class PortfolioFragment extends Fragment
             adapter.updatePortfolioItems(portfolioItems);
             adapter.notifyDataSetChanged();
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_signOut) {
+            if (userFb != null) { //sign out
+                Toast.makeText(mContext, "Signing out...", Toast.LENGTH_LONG).show();
+                AuthUI.getInstance().signOut(mContext)
+                        .addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                //TODO - Pause everything to allow sign out
+                                initViews();
+                            }
+                        });
+            }
+            //Remove sign out button
+            setHasOptionsMenu(false);
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     //Helper method to process data on a DB change event
@@ -310,7 +326,7 @@ public class PortfolioFragment extends Fragment
 
 
     private void registerPortfolioListener() {
-        if (portfolioRef != null) {
+        if (portfolioRef != null && portfolioListenerFb == null) {
             portfolioListenerFb = portfolioRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
                 @Override
                 public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
@@ -339,17 +355,44 @@ public class PortfolioFragment extends Fragment
         fragment.dismiss();
     }
 
+    //Observe the crypto updates.  Every time crypto updates, so should the portfolio
+    //so refresh the portfolio on update
+    private void registerDataObservers() {
+        if (cryptoObserver == null) {
+            cryptoLD = mData.getCryptos();
+            cryptoObserver = new Observer<ArrayList<Crypto>>() {
+                @Override
+                public void onChanged(ArrayList<Crypto> portfolioItemsMoreDetails) {
+                    fetchPortfolioInfo();
+                }
+            };
+            cryptoLD.observe(this, cryptoObserver);
+        }
+    }
+
+    private void unregisterDataObservers() {
+        if (cryptoObserver != null && cryptoLD != null) {
+            cryptoLD.removeObserver(cryptoObserver);
+            cryptoObserver = null;
+        }
+    }
+
     @Override
     public void onStart() {
         super.onStart();
-
-        registerPortfolioListener();
     }
 
     @Override
     public void onStop() {
         super.onStop();
+    }
+
+    @Override
+    public void onDestroyView() {
+        unregisterDataObservers();
         unregisterPortfolioListener();
+
+        super.onDestroyView();
     }
 
     @Override
