@@ -5,4 +5,26 @@
     <string name="tab_settings_title">Settings</string>
     <string name="tab_marketview_title">Market View</string>
     <string name="tab_watchlist_title">Watchlist</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <string name="menu_portfolio_sign_out_title">Sign out</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
+
+    <!-- Shared Preferences Strings -->
+    <string name="refresh_time_title">Refresh data every:</string>
+    <string name="refresh_time_default_value">10</string>
+
+    <!-- Shared Preferences Keys -->
+    <string name="key_refresh_time">key_refresh_time</string>
 </resources>

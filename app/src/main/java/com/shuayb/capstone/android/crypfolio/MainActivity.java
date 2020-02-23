@@ -1,6 +1,9 @@
 package com.shuayb.capstone.android.crypfolio;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -9,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -38,6 +40,7 @@ public class MainActivity extends AppCompatActivity
     private static final String KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED = "last_fragment";
     private static final String KEY_BUNDLE_TOP_TAB_POS = "top_tab_position";
     private static final String KEY_BUNDLE_BOTTOM_TAB_POS = "bottom_tab_position";
+    private static final String KEY_BUNDLE_PREV_BOTTOM_TAB_POS = "previous_bottom_tab_position";
 
     private static final int FRAG_MARKETVIEW = 1;
     private static final int FRAG_WATCHLIST = 2;
@@ -52,11 +55,15 @@ public class MainActivity extends AppCompatActivity
     private DetailsFragment detailsFragment;
     private Thread refreshThread;
     private DataViewModel mData;
+    private int prevBottomTabPos = 0;
+    private SharedPreferences preferences;
+    private int refreshTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         mData = ViewModelProviders.of(this).get(DataViewModel.class);
@@ -91,12 +98,18 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
+
+        String defaultTime = getString(R.string.refresh_time_default_value);
+        String timeKey = getString(R.string.key_refresh_time);
+        refreshTime = Integer.parseInt(preferences.getString(timeKey, defaultTime)) * 1000;
+        Toast.makeText(this, "Refresh time is every " + refreshTime + "ms", Toast.LENGTH_LONG).show();
+
         refreshThread = new Thread() {
             @Override
             public void run() {
                 try {
                     while (!refreshThread.isInterrupted()) {
-                        Thread.sleep(5000);
+                        Thread.sleep(refreshTime);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -162,6 +175,7 @@ public class MainActivity extends AppCompatActivity
         lastFragmentDisplayed = savedInstanceState.getInt(KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED);
         int topTabPosition = savedInstanceState.getInt(KEY_BUNDLE_TOP_TAB_POS);
         int bottomTabPosition = savedInstanceState.getInt(KEY_BUNDLE_BOTTOM_TAB_POS);
+        prevBottomTabPos = savedInstanceState.getInt(KEY_BUNDLE_PREV_BOTTOM_TAB_POS);
 
         setupBottomTabs(bottomTabPosition);
         setupTopTabs(topTabPosition);
@@ -184,9 +198,12 @@ public class MainActivity extends AppCompatActivity
     //The tabs determine which fragment will be displayed
     //Except for settings, which launches a new activity
     private void setupBottomTabs(int pos) {
+
+        //Set previous tab position from savedInstanceState, if exists
         if (pos >= 0) {
             mBinding.tabLayoutBottom.getTabAt(pos).select();
         }
+
         mBinding.tabLayoutBottom.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -198,12 +215,16 @@ public class MainActivity extends AppCompatActivity
                         } else {
                             setWatchlistFragment();
                         }
+                        prevBottomTabPos = 0;
                         break;
                     case 1:     //Portfolio tab
                         setPortfolioFragment();
+                        prevBottomTabPos = 1;
                         break;
                     case 2:     //Settings tab
-                        Toast.makeText(getApplicationContext(), "Selected Settings tab!", Toast.LENGTH_SHORT).show();
+                        mBinding.tabLayoutBottom.getTabAt(prevBottomTabPos).select();
+                        Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                        startActivity(intent);
                         break;
                 }
             }
@@ -348,8 +369,12 @@ public class MainActivity extends AppCompatActivity
     public boolean onSupportNavigateUp(){
         //TODO - Fix so it goes back to watchlist if selected from watchlist
         if (lastFragmentDisplayed == FRAG_WATCHLIST) {
+            Toast.makeText(this, "back to watchlist fragment", Toast.LENGTH_SHORT).show();
+            setupBottomTabs(1);
             setWatchlistFragment();
         } else {
+            Toast.makeText(this, "back to marketview fragment", Toast.LENGTH_SHORT).show();
+            setupBottomTabs(0);
             setMarketviewFragment();
         }
         return true;
@@ -375,6 +400,7 @@ public class MainActivity extends AppCompatActivity
         outState.putInt(KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED, lastFragmentDisplayed);
         outState.putInt(KEY_BUNDLE_TOP_TAB_POS, mBinding.tabLayoutTop.getSelectedTabPosition());
         outState.putInt(KEY_BUNDLE_BOTTOM_TAB_POS, mBinding.tabLayoutBottom.getSelectedTabPosition());
+        outState.putInt(KEY_BUNDLE_PREV_BOTTOM_TAB_POS, prevBottomTabPos);
     }
 
 }

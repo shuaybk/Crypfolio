@@ -37,6 +37,7 @@ dependencies {
     implementation 'com.firebaseui:firebase-ui-auth:6.2.0'
     implementation 'com.google.firebase:firebase-firestore:21.4.0'
 
+    implementation 'androidx.preference:preference:1.1.0-alpha05'
     annotationProcessor 'androidx.room:room-compiler:2.2.3'
 
     testImplementation 'junit:junit:4.12'

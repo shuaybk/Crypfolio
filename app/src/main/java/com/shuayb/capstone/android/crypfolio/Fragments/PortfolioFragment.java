@@ -414,6 +414,7 @@ public class PortfolioFragment extends Fragment
     @Override
     public void onDeleteClicked(final PortfolioItem item) {
         dismissDialog();
+        Toast.makeText(mContext, "Deleting - one moment...", Toast.LENGTH_SHORT).show();
 
         portfolioRef.get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
