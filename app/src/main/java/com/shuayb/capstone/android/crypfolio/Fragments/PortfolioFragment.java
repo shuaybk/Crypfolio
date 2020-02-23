@@ -238,7 +238,7 @@ public class PortfolioFragment extends Fragment
         //Look up the price info for our portfolio items (if any)
         if (ids.length() > 0) {
 
-            mData.refreshPortfolioItems(getContext(), ids.toString());
+            mData.refreshPortfolioItems(mContext, ids.toString());
             final MutableLiveData<ArrayList<Crypto>> portfolioItemsMoreDetailsLD = mData.getPortfolioItemsMoreDetails();
             mData.clearPortfolioItemsMoreDetails();
             portfolioItemsMoreDetailsLD.observe(this, new Observer<ArrayList<Crypto>>() {
