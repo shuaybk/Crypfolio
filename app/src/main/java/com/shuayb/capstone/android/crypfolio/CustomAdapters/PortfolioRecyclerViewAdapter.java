@@ -68,7 +68,7 @@ public class PortfolioRecyclerViewAdapter
 
         Picasso.get().load(item.getImage()).into(holder.logoImage);
         holder.nameText.setText(item.getName());
-        holder.priceTotalText.setText("$" + RandomUtils.getFormattedCurrencyAmount(item.getCurrentPrice()));
+        holder.priceTotalText.setText("$" + RandomUtils.getFormattedCurrencyAmount(item.getCurrentPrice()*item.getAmount()));
         holder.netChangeText.setText(netChange);
         holder.amountPriceText.setText(amountPrice);
     }

@@ -35,6 +35,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.shuayb.capstone.android.crypfolio.AddPortfolioItemActivity;
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.PortfolioRecyclerViewAdapter;
+import com.shuayb.capstone.android.crypfolio.DataUtils.RandomUtils;
 import com.shuayb.capstone.android.crypfolio.DataViewModel;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.POJOs.PortfolioItem;
@@ -159,7 +160,14 @@ public class PortfolioFragment extends Fragment
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    private void setRecyclerView() {
+    private void setViews() {
+
+        double totalVal = 0;
+        for (PortfolioItem item: portfolioItems) {
+            totalVal+= item.getAmount()*item.getCurrentPrice();
+        }
+        mBinding.totalValue.setText("$" + RandomUtils.getFormattedCurrencyAmount(totalVal));
+
         if (mBinding.recyclerView.getAdapter() == null) {  //Initial setup
             PortfolioRecyclerViewAdapter adapter = new PortfolioRecyclerViewAdapter(getContext(), portfolioItems, this);
             mBinding.recyclerView.setAdapter(adapter);
@@ -279,7 +287,7 @@ public class PortfolioFragment extends Fragment
                                 }
 
                                 //Now we have all the info needed, we can finish setting up / updating the views
-                                setRecyclerView();
+                                setViews();
                                 showMainScreen();
                             }
                         }
