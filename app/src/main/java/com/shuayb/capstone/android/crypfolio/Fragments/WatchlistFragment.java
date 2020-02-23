@@ -42,6 +42,7 @@ public class WatchlistFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mBinding = WatchlistFragmentBinding.inflate(inflater, container, false);
+        showLoadingScreen();
         mDb = AppDatabase.getInstance(getContext());
         mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
 
@@ -60,6 +61,7 @@ public class WatchlistFragment extends Fragment {
             public void onChanged(List<Crypto> cryptos) {
                 watchlistItems = new ArrayList<Crypto>(cryptos);
                 setRecyclerview();
+                showMainScreen();
             }
         });
 
@@ -117,10 +119,19 @@ public class WatchlistFragment extends Fragment {
         }
     }
 
-
-
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
+    }
+
+
+    private void showLoadingScreen() {
+        mBinding.mainContainer.setVisibility(View.GONE);
+        mBinding.loadingContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void showMainScreen() {
+        mBinding.mainContainer.setVisibility(View.VISIBLE);
+        mBinding.loadingContainer.setVisibility(View.GONE);
     }
 }

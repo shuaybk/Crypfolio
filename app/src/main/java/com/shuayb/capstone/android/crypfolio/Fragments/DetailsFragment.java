@@ -65,6 +65,8 @@ public class DetailsFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mBinding = DetailsFragmentBinding.inflate(inflater, container, false);
+        showLoadingScreen();
+
         mDb = AppDatabase.getInstance(getContext());
         mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
 
@@ -80,6 +82,8 @@ public class DetailsFragment extends Fragment {
             initViews(newCrypto, true);
             newCrypto = false;
             setDataObservers();
+        } else {
+            showErrorScreen();
         }
 
         return mBinding.getRoot();
@@ -154,6 +158,9 @@ public class DetailsFragment extends Fragment {
 
                     chart = JsonUtils.convertJsonToChart(response);
                     displayChart(firstTime);
+
+                    //Chart was last thing to load, so show main screen now
+                    showMainScreen();
                 }
             }, new Response.ErrorListener() {
                 @Override
@@ -262,5 +269,24 @@ public class DetailsFragment extends Fragment {
         outState.putParcelable(KEY_BUNDLE_CHART, chart);
         outState.putParcelable(KEY_BUNDLE_CRYPTO, crypto);
         outState.putBoolean(KEY_BUNDLE_FIRST_TIME, newCrypto);
+    }
+
+
+    private void showLoadingScreen() {
+        mBinding.mainContainer.setVisibility(View.GONE);
+        mBinding.errorContainer.setVisibility(View.GONE);
+        mBinding.loadingContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void showMainScreen() {
+        mBinding.mainContainer.setVisibility(View.VISIBLE);
+        mBinding.errorContainer.setVisibility(View.GONE);
+        mBinding.loadingContainer.setVisibility(View.GONE);
+    }
+
+    private void showErrorScreen() {
+        mBinding.mainContainer.setVisibility(View.GONE);
+        mBinding.errorContainer.setVisibility(View.VISIBLE);
+        mBinding.loadingContainer.setVisibility(View.GONE);
     }
 }

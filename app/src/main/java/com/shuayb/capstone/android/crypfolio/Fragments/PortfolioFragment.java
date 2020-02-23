@@ -98,6 +98,7 @@ public class PortfolioFragment extends Fragment
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mBinding = PortfolioFragmentBinding.inflate(inflater, container, false);
+        showLoadingScreen();
 
         mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
 
@@ -119,6 +120,7 @@ public class PortfolioFragment extends Fragment
             unregisterDataObservers();
             setHasOptionsMenu(false);
             portfolioRef = null;
+            showMainScreen();
         } else {
             setHasOptionsMenu(true); //to display sign out button
             portfolioRef = dbf.collection("users").document(userFb.getUid());
@@ -215,6 +217,7 @@ public class PortfolioFragment extends Fragment
                             mBinding.mainContentContainer.setVisibility(View.GONE);
                             mBinding.errorMessage.setVisibility(View.VISIBLE);
                             Toast.makeText(getContext(), "Error: Could not fetch Portfolio", Toast.LENGTH_LONG).show();
+                            showMainScreen(); //This main screen includes the above error view
                         }
                     }
                 });
@@ -277,6 +280,7 @@ public class PortfolioFragment extends Fragment
 
                                 //Now we have all the info needed, we can finish setting up / updating the views
                                 setRecyclerView();
+                                showMainScreen();
                             }
                         }
                     });
@@ -483,5 +487,15 @@ public class PortfolioFragment extends Fragment
     @Override
     public void onDismissed() {
         mBinding.backgroundCover.setVisibility(View.GONE);
+    }
+
+    private void showLoadingScreen() {
+        mBinding.mainContainer.setVisibility(View.GONE);
+        mBinding.loadingContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void showMainScreen() {
+        mBinding.mainContainer.setVisibility(View.VISIBLE);
+        mBinding.loadingContainer.setVisibility(View.GONE);
     }
 }

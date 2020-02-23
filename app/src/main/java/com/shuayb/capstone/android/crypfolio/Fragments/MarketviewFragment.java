@@ -45,15 +45,18 @@ public class MarketviewFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
         mBinding = MarketviewFragmentBinding.inflate(inflater, container, false);
+
+        showLoadingScreen();
+
         mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
 
         mData.getCryptos().observe(this, new Observer<ArrayList<Crypto>>() {
             @Override
             public void onChanged(ArrayList<Crypto> cryptos) {
                 setRecyclerView();
+                showMainScreen();
             }
         });
-
 
         return mBinding.getRoot();
     }
@@ -74,5 +77,15 @@ public class MarketviewFragment extends Fragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
+    }
+
+    private void showLoadingScreen() {
+        mBinding.mainContainer.setVisibility(View.GONE);
+        mBinding.loadingContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void showMainScreen() {
+        mBinding.mainContainer.setVisibility(View.VISIBLE);
+        mBinding.loadingContainer.setVisibility(View.GONE);
     }
 }
