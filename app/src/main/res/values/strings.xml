@@ -27,4 +27,6 @@
 
     <!-- Shared Preferences Keys -->
     <string name="key_refresh_time">key_refresh_time</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
 </resources>
