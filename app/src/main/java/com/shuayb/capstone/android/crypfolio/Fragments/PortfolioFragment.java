@@ -1,5 +1,6 @@
 package com.shuayb.capstone.android.crypfolio.Fragments;
 
+import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -39,6 +40,7 @@ import com.shuayb.capstone.android.crypfolio.DataUtils.RandomUtils;
 import com.shuayb.capstone.android.crypfolio.DataViewModel;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
 import com.shuayb.capstone.android.crypfolio.POJOs.PortfolioItem;
+import com.shuayb.capstone.android.crypfolio.PortfolioWidgetProvider;
 import com.shuayb.capstone.android.crypfolio.R;
 import com.shuayb.capstone.android.crypfolio.databinding.PortfolioFragmentBinding;
 
@@ -61,6 +63,7 @@ public class PortfolioFragment extends Fragment
     private static final String KEY_CRYPTO_ID = "key_crypto_id";
     private static final String KEY_AMOUNT = "key_amount";
     private static final String KEY_PURCHASE_PRICE = "key_purchase_price";
+    private static final String KEY_BUNDLE_APPWIDGET_ID = "appwidget_id";
     private static final int RC_SIGN_IN = 123;
     private static final int RC_ADD_PORTFOLIO_ITEM = 456;
     private static final int DB_AMOUNT_INDEX = 0;
@@ -78,12 +81,16 @@ public class PortfolioFragment extends Fragment
     private DocumentSnapshot lastResult;
     MutableLiveData<ArrayList<Crypto>> cryptoLD;
     Observer<ArrayList<Crypto>> cryptoObserver;
+    private int appWidgetId;
 
     List<AuthUI.IdpConfig> providers = Arrays.asList(
             new AuthUI.IdpConfig.EmailBuilder().build());
 
-    public static final PortfolioFragment newInstance() {
+    public static final PortfolioFragment newInstance(int widgetId) {
         PortfolioFragment f = new PortfolioFragment();
+        Bundle bundle = new Bundle();
+        bundle.putInt(KEY_BUNDLE_APPWIDGET_ID, widgetId);
+        f.setArguments(bundle);
         return f;
     }
 
@@ -93,6 +100,7 @@ public class PortfolioFragment extends Fragment
         authFb = FirebaseAuth.getInstance();
         dbf = FirebaseFirestore.getInstance();
         mContext = getContext();
+        appWidgetId = getArguments().getInt(KEY_BUNDLE_APPWIDGET_ID);
     }
 
     @Nullable
@@ -161,11 +169,15 @@ public class PortfolioFragment extends Fragment
     }
 
     private void setViews() {
-
         double totalVal = 0;
         for (PortfolioItem item: portfolioItems) {
             totalVal+= item.getAmount()*item.getCurrentPrice();
         }
+
+        if (appWidgetId != AppWidgetManager.INVALID_APPWIDGET_ID) {
+            updateAppWidget(totalVal);
+        }
+
         mBinding.totalValue.setText("$" + RandomUtils.getFormattedCurrencyAmount(totalVal));
 
         if (mBinding.recyclerView.getAdapter() == null) {  //Initial setup
@@ -178,6 +190,7 @@ public class PortfolioFragment extends Fragment
             adapter.updatePortfolioItems(portfolioItems);
             adapter.notifyDataSetChanged();
         }
+        showMainScreen();
     }
 
     @Override
@@ -288,7 +301,6 @@ public class PortfolioFragment extends Fragment
 
                                 //Now we have all the info needed, we can finish setting up / updating the views
                                 setViews();
-                                showMainScreen();
                             }
                         }
                     });
@@ -358,6 +370,7 @@ public class PortfolioFragment extends Fragment
     private void unregisterPortfolioListener() {
         if (portfolioListenerFb != null) {
             portfolioListenerFb.remove();
+            portfolioListenerFb = null;
         }
     }
 
@@ -505,5 +518,9 @@ public class PortfolioFragment extends Fragment
     private void showMainScreen() {
         mBinding.mainContainer.setVisibility(View.VISIBLE);
         mBinding.loadingContainer.setVisibility(View.GONE);
+    }
+
+    private void updateAppWidget(double totalValue) {
+        PortfolioWidgetProvider.updateWidgetText(mContext, AppWidgetManager.getInstance(mContext), appWidgetId, totalValue);
     }
 }

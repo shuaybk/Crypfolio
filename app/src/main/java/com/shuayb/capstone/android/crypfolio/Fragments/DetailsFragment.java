@@ -1,5 +1,6 @@
 package com.shuayb.capstone.android.crypfolio.Fragments;
 
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,6 +15,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -36,6 +39,7 @@ import com.shuayb.capstone.android.crypfolio.R;
 import com.shuayb.capstone.android.crypfolio.databinding.DetailsFragmentBinding;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class DetailsFragment extends Fragment {
     private static final String TAG = "DetailsFragment";
@@ -52,6 +56,9 @@ public class DetailsFragment extends Fragment {
     private Menu menu;
     private Chart chart;
     private boolean newCrypto = true;
+    private Context mContext;
+    private Observer<ArrayList<Crypto>> cryptoObserver;
+    private MutableLiveData<ArrayList<Crypto>> cryptosLD;
 
     public static final DetailsFragment newInstance(Crypto crypto) {
         DetailsFragment f = new DetailsFragment();
@@ -67,7 +74,7 @@ public class DetailsFragment extends Fragment {
         mBinding = DetailsFragmentBinding.inflate(inflater, container, false);
         showLoadingScreen();
 
-        mDb = AppDatabase.getInstance(getContext());
+        mDb = AppDatabase.getInstance(mContext);
         mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
 
 
@@ -93,10 +100,11 @@ public class DetailsFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         crypto = getArguments().getParcelable(KEY_BUNDLE_CRYPTO);
+        mContext = getContext();
     }
 
     private void setDataObservers() {
-        mData.getCryptos().observe(this, new Observer<ArrayList<Crypto>>() {
+        cryptoObserver = new Observer<ArrayList<Crypto>>() {
             @Override
             public void onChanged(ArrayList<Crypto> cryptos) {
                 Crypto match = null;
@@ -116,10 +124,21 @@ public class DetailsFragment extends Fragment {
                     }
 
                 } else {
-                    Toast.makeText(getContext(), "Couldn't update details for this crypto", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mContext, "Couldn't update details for this crypto", Toast.LENGTH_SHORT).show();
                 }
             }
-        });
+        };
+        cryptosLD = mData.getCryptos();
+        cryptosLD.observe(this, cryptoObserver);
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (cryptoObserver != null) {
+            cryptosLD.removeObserver(cryptoObserver);
+            cryptoObserver = null;
+        }
+        super.onDestroyView();
     }
 
     //To set the crypto to be displayed
@@ -144,11 +163,14 @@ public class DetailsFragment extends Fragment {
         mBinding.lastUpdatedText.setText("Last Updated: " + crypto.getLastUpdated());
 
         getActivity().setTitle(crypto.getName());
+        //Don't wait for the chart to load too or we might be waiting a long time
+        //if we run out of our allotted API calls
+        showMainScreen();
     }
 
     private void setChart(final boolean firstTime) {
         if (chart == null) {
-            RequestQueue mRequestQueue = Volley.newRequestQueue(getContext());
+            RequestQueue mRequestQueue = Volley.newRequestQueue(mContext);
 
             StringRequest mStringRequest = new StringRequest(Request.Method.GET,
                     NetworkUtils.getUrlForChartData(crypto.getId()), new Response.Listener<String>() {
@@ -159,8 +181,6 @@ public class DetailsFragment extends Fragment {
                     chart = JsonUtils.convertJsonToChart(response);
                     displayChart(firstTime);
 
-                    //Chart was last thing to load, so show main screen now
-                    showMainScreen();
                 }
             }, new Response.ErrorListener() {
                 @Override
@@ -221,6 +241,16 @@ public class DetailsFragment extends Fragment {
 
             @Override
             protected void onPostExecute(Void aVoid) {
+                LiveData<List<Crypto>> temp = mDb.watchlistDao().loadAllWatchListItems();
+                temp.observe(DetailsFragment.this, new Observer<List<Crypto>>() {
+                    @Override
+                    public void onChanged(List<Crypto> cryptos) {
+                        System.out.println("WATCHLIST ISSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS:");
+                        for (Crypto c: cryptos) {
+                            System.out.println(c.getId());
+                        }
+                    }
+                });
                 MenuItem favButton = menu.findItem(R.id.action_watchlist);
 
                 if (isWatchlistItem) {

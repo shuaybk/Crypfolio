@@ -1,5 +1,6 @@
 package com.shuayb.capstone.android.crypfolio;
 
+import android.appwidget.AppWidgetManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -15,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
@@ -44,6 +46,7 @@ public class MainActivity extends AppCompatActivity
     private static final String KEY_BUNDLE_TOP_TAB_POS = "top_tab_position";
     private static final String KEY_BUNDLE_BOTTOM_TAB_POS = "bottom_tab_position";
     private static final String KEY_BUNDLE_PREV_BOTTOM_TAB_POS = "previous_bottom_tab_position";
+    private static final String KEY_BUNDLE_APPWIDGET_ID = "appwidget_id";
 
     private static final int FRAG_MARKETVIEW = 1;
     private static final int FRAG_WATCHLIST = 2;
@@ -61,6 +64,7 @@ public class MainActivity extends AppCompatActivity
     private int prevBottomTabPos = 0;
     private SharedPreferences preferences;
     private int refreshTime;
+    private int appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,25 +75,27 @@ public class MainActivity extends AppCompatActivity
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main);
         mData = ViewModelProviders.of(this).get(DataViewModel.class);
 
+        getWidgetInfo();
+
         if (savedInstanceState != null) {
             restoreSetup(savedInstanceState);
-        } else {
-            mData.refreshCryptos(this);
         }
-
+        mData.refreshCryptos(this);
         setCryptoDataObservers();
     }
 
+    //The observer onChanged method gets called right away on attached
+    //regardless of whether or not the data actually changed
+    //So we will do our first data refresh here
     private void setCryptoDataObservers() {
 
-        mData.getCryptos().observe(this, new Observer<ArrayList<Crypto>>() {
+        final MutableLiveData<ArrayList<Crypto>> cryptosLD = mData.getCryptos();
+        cryptosLD.observe(this, new Observer<ArrayList<Crypto>>() {
             @Override
             public void onChanged(ArrayList<Crypto> cryptos) {
-
+                cryptosLD.removeObserver(this);
                 if (marketviewFragment == null) {  //Initial setup
                     initialSetup();
-                } else {
-                    //Update whatever needs new crypto info
                 }
             }
         });
@@ -144,11 +150,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initialSetup() {
+        Toast.makeText(this, "Creating new fragments", Toast.LENGTH_LONG).show();
         marketviewFragment = MarketviewFragment.newInstance();
         watchlistFragment = WatchlistFragment.newInstance();
-        portfolioFragment = PortfolioFragment.newInstance();
+        portfolioFragment = PortfolioFragment.newInstance(appWidgetId);
         detailsFragment = DetailsFragment.newInstance(null);
 
+        //Attach and detach all fragments so they are in the fragment manager
+        //This manages their lifecycle automatically
         FragmentManager fm = getSupportFragmentManager();
         fm.beginTransaction()
                 .add(R.id.frag_main, marketviewFragment)
@@ -169,10 +178,17 @@ public class MainActivity extends AppCompatActivity
                 .detach(detailsFragment)
                 .commit();
 
-        setMarketviewFragment();
-
-        setupBottomTabs(0);
-        setupTopTabs(0);
+        //If widget didn't start the app, go to MarketView
+        //Otherwise go to Portfolio
+        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+            setMarketviewFragment();
+            setupBottomTabs(0);
+            setupTopTabs(0);
+        } else {
+            setPortfolioFragment();
+            setupBottomTabs(1);
+            setupTopTabs(0);
+        }
     }
 
     private void restoreSetup(Bundle savedInstanceState) {
@@ -187,6 +203,7 @@ public class MainActivity extends AppCompatActivity
         int topTabPosition = savedInstanceState.getInt(KEY_BUNDLE_TOP_TAB_POS);
         int bottomTabPosition = savedInstanceState.getInt(KEY_BUNDLE_BOTTOM_TAB_POS);
         prevBottomTabPos = savedInstanceState.getInt(KEY_BUNDLE_PREV_BOTTOM_TAB_POS);
+        appWidgetId = savedInstanceState.getInt(KEY_BUNDLE_APPWIDGET_ID);
 
         setupBottomTabs(bottomTabPosition);
         setupTopTabs(topTabPosition);
@@ -398,12 +415,10 @@ public class MainActivity extends AppCompatActivity
     public boolean onSupportNavigateUp(){
         //TODO - Fix so it goes back to watchlist if selected from watchlist
         if (lastFragmentDisplayed == FRAG_WATCHLIST) {
-            Toast.makeText(this, "back to watchlist fragment", Toast.LENGTH_SHORT).show();
-            setupBottomTabs(1);
+            mBinding.tabLayoutBottom.getTabAt(1).select();
             setWatchlistFragment();
         } else {
-            Toast.makeText(this, "back to marketview fragment", Toast.LENGTH_SHORT).show();
-            setupBottomTabs(0);
+            mBinding.tabLayoutBottom.getTabAt(0).select();
             setMarketviewFragment();
         }
         return true;
@@ -433,6 +448,7 @@ public class MainActivity extends AppCompatActivity
         outState.putInt(KEY_BUNDLE_TOP_TAB_POS, mBinding.tabLayoutTop.getSelectedTabPosition());
         outState.putInt(KEY_BUNDLE_BOTTOM_TAB_POS, mBinding.tabLayoutBottom.getSelectedTabPosition());
         outState.putInt(KEY_BUNDLE_PREV_BOTTOM_TAB_POS, prevBottomTabPos);
+        outState.putInt(KEY_BUNDLE_APPWIDGET_ID, appWidgetId);
     }
 
     private void showError() {
@@ -443,5 +459,12 @@ public class MainActivity extends AppCompatActivity
     private void showMainContent() {
         mBinding.errorContainer.setVisibility(View.GONE);
         mBinding.mainContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void getWidgetInfo() {
+        Bundle extras = getIntent().getExtras();
+        if (extras != null) {
+            appWidgetId = extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
+        }
     }
 }

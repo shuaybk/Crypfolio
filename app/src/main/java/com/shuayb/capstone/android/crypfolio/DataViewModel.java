@@ -66,7 +66,7 @@ public class DataViewModel extends ViewModel {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Volley Error refreshing data!!  " + error.getMessage());
+                Log.e(TAG, "Volley Error refreshing data!!  " + error.toString());
                 if (cryptos == null) {  //Set empty list if we don't have old info already stored
                     cryptos = new MutableLiveData<>();
                     cryptos.setValue(new ArrayList<Crypto>());
@@ -98,7 +98,7 @@ public class DataViewModel extends ViewModel {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Volley Error in refreshPortfolioItems!!!!!!!! " + error.getMessage());
+                Log.e(TAG, "Volley Error in refreshPortfolioItems!!!!!!!! " + error.toString());
                 if (portfolioItemsMoreDetails == null) {
                     portfolioItemsMoreDetails = new MutableLiveData<>();
                     portfolioItemsMoreDetails.setValue(new ArrayList<Crypto>());

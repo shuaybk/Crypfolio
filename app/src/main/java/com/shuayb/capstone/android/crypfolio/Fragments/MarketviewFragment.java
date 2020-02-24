@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -26,6 +27,8 @@ public class MarketviewFragment extends Fragment {
 
     private MarketviewFragmentBinding mBinding;
     private DataViewModel mData;
+    private Observer<ArrayList<Crypto>> cryptoObserver;
+    private MutableLiveData<ArrayList<Crypto>> cryptosLD;
 
 
     //Create new instance of the fragment here instead of using a custom constructor
@@ -46,19 +49,30 @@ public class MarketviewFragment extends Fragment {
 
         mBinding = MarketviewFragmentBinding.inflate(inflater, container, false);
 
-        showLoadingScreen();
+        //showLoadingScreen();
 
         mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
 
-        mData.getCryptos().observe(this, new Observer<ArrayList<Crypto>>() {
+        cryptoObserver = new Observer<ArrayList<Crypto>>() {
             @Override
             public void onChanged(ArrayList<Crypto> cryptos) {
                 setRecyclerView();
-                showMainScreen();
+                //showMainScreen();
             }
-        });
+        };
+        cryptosLD = mData.getCryptos();
+        cryptosLD.observe(this, cryptoObserver);
 
         return mBinding.getRoot();
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (cryptoObserver != null) {
+            cryptosLD.removeObserver(cryptoObserver);
+            cryptoObserver = null;
+        }
+        super.onDestroyView();
     }
 
     private void setRecyclerView() {
