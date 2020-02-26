@@ -35,7 +35,7 @@ public class PortfolioWidgetProvider extends AppWidgetProvider {
     public static void updateWidgetText(Context context, AppWidgetManager appWidgetManager, int appWidgetId, double portfolioValue) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.portfolio_widget);
         String formattedVal = "$" + RandomUtils.getFormattedCurrencyAmount(portfolioValue);
-        views.setTextViewText(R.id.appwidget_text, "Total: " + formattedVal);
+        views.setTextViewText(R.id.appwidget_text, "Portfolio Value:\n" + formattedVal);
 
         Intent intent = new Intent(context, MainActivity.class);
         intent.setAction(ACTION_OPEN_PORTFOLIO);

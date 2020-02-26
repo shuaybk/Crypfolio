@@ -43,11 +43,7 @@ public class DataViewModel extends ViewModel {
                 if (cryptos == null) {
                     cryptos = new MutableLiveData<>();
                 }
-                //TODO - Delete this part that randomizes the first value
-                ArrayList<Crypto> temp = JsonUtils.convertJsonToCryptoList(response);
-                temp.get(0).setCurrentPrice(Math.random());
-                cryptos.setValue(temp);
-                //cryptos.setValue(JsonUtils.convertJsonToCryptoList(response));
+                cryptos.setValue(JsonUtils.convertJsonToCryptoList(response));
             }
         }, new Response.ErrorListener() {
             @Override

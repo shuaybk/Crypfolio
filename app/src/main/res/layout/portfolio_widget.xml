@@ -2,7 +2,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#09C"
-    android:padding="@dimen/widget_margin">
+    android:padding="2dp">
 
     <TextView
         android:id="@+id/appwidget_text"
@@ -10,11 +10,12 @@
         android:layout_height="match_parent"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
+        android:gravity="center"
         android:layout_margin="8dp"
-        android:background="#09C"
+        android:background="@color/lightGrey"
         android:contentDescription="@string/appwidget_text"
         android:text="@string/appwidget_text"
-        android:textColor="#ffffff"
+        android:textColor="@color/black"
         android:textSize="20sp"
         android:textStyle="bold|italic" />
 

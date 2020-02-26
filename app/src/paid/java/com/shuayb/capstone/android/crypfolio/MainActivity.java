@@ -109,7 +109,6 @@ public class MainActivity extends AppCompatActivity
         String defaultTime = getString(R.string.refresh_time_default_value);
         String timeKey = getString(R.string.key_refresh_time);
         refreshTime = Integer.parseInt(preferences.getString(timeKey, defaultTime)) * 1000;
-        Toast.makeText(this, "Refresh time is every " + refreshTime + "ms", Toast.LENGTH_LONG).show();
 
         if (!isConnectedToInternet()) {
             showError();
@@ -131,9 +130,7 @@ public class MainActivity extends AppCompatActivity
                                 }
                             }
                         });
-                        //TODO - set sleep time back to variable refreshTime
-                        //Thread.sleep(refreshTime);
-                        Thread.sleep(50000);
+                        Thread.sleep(refreshTime);
                     }
                 } catch (InterruptedException e) {
                     Log.w(TAG, "Error trying to refresh data in thread: " + e.toString());
@@ -151,7 +148,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void initialSetup() {
-        Toast.makeText(this, "Creating new fragments", Toast.LENGTH_LONG).show();
         marketviewFragment = MarketviewFragment.newInstance();
         watchlistFragment = WatchlistFragment.newInstance();
         portfolioFragment = PortfolioFragment.newInstance(appWidgetId);
@@ -452,10 +448,8 @@ public class MainActivity extends AppCompatActivity
 
     //Set behavior of actionbar back button
     //Back button only displays on the main activity if we are in details fragment
-    //TODO - Make this work for the device back button as well
     @Override
     public boolean onSupportNavigateUp(){
-        //TODO - Fix so it goes back to watchlist if selected from watchlist
         if (lastFragmentDisplayed == FRAG_WATCHLIST) {
             mBinding.tabLayoutBottom.getTabAt(1).select();
             setWatchlistFragment();

@@ -214,7 +214,6 @@ public class PortfolioFragment extends Fragment
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
-                                //TODO - Pause everything to allow sign out
                                 initViews();
                             }
                         });
@@ -363,7 +362,6 @@ public class PortfolioFragment extends Fragment
                                 list.add(DB_PRICE_INDEX, purchasePrice);
                                 data.put(cryptoId, list);
                                 portfolioRef.set(data);
-                                Toast.makeText(getContext(), "Added to DB!!", Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             Toast.makeText(getContext(), "Error adding Portfolio item", Toast.LENGTH_SHORT).show();

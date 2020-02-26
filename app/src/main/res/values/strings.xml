@@ -23,6 +23,8 @@
     <string name="total_value_label">Total Value</string>
     <string name="port_frag_error_message">Error! Check your internet connection and restart the app</string>
 
+    <string name="banner_ad_unit_id">ca-app-pub-6540693995683100/8055719614</string>
+
     <string name="menu_portfolio_sign_out_title">Sign out</string>
 
     <!-- Preference Titles -->

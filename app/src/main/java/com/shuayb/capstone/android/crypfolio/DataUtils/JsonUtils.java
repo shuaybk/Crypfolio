@@ -69,7 +69,6 @@ public class JsonUtils {
 
                     Date date = new Date(time);
 
-                    //TODO - Clean this up and the line chart stuff
                     times.add(formatter.format(date));
                     prices.add(new BarEntry((float)price, i));
                 }
