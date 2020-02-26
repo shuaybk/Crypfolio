@@ -80,7 +80,6 @@ public class MainActivity extends AppCompatActivity
         if (savedInstanceState != null) {
             restoreSetup(savedInstanceState);
         }
-        mData.refreshCryptos(this);
         setCryptoDataObservers();
     }
 
@@ -121,7 +120,6 @@ public class MainActivity extends AppCompatActivity
             public void run() {
                 try {
                     while (!refreshThread.isInterrupted()) {
-                        Thread.sleep(refreshTime);
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
@@ -133,9 +131,12 @@ public class MainActivity extends AppCompatActivity
                                 }
                             }
                         });
+                        //TODO - set sleep time back to variable refreshTime
+                        //Thread.sleep(refreshTime);
+                        Thread.sleep(5000);
                     }
                 } catch (InterruptedException e) {
-                    Log.w(TAG, "Error trying to refresh data in thread: " + e.getMessage());
+                    Log.w(TAG, "Error trying to refresh data in thread: " + e.toString());
                 }
             }
         };

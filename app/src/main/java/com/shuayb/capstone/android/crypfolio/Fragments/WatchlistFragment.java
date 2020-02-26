@@ -76,7 +76,7 @@ public class WatchlistFragment extends Fragment {
             @Override
             public void onChanged(List<Crypto> cryptos) {
                 watchlistItems = new ArrayList<Crypto>(cryptos);
-                System.out.println("Hellooooooooooooooooooooo WatchlistItems is: ");
+                System.out.println(TAG + " setDataObservers WatchlistItems is: ");
                 for (Crypto c: cryptos) {
                     System.out.println(c.getId());
                 }
@@ -92,7 +92,7 @@ public class WatchlistFragment extends Fragment {
         cryptoObserver = new Observer<ArrayList<Crypto>>() {
             @Override
             public void onChanged(ArrayList<Crypto> cryptos) {
-                System.out.println("Hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii cryptosLD is " + cryptos.size() + " long");
+                System.out.println(TAG + " setDataObservers cryptosLD is " + cryptos.size() + " long");
                 if (watchlistItems != null) {
                     updateWatchlistItemData(cryptos, watchlistItems);
                 }

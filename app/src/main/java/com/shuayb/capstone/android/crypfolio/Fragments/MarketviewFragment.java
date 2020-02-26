@@ -29,6 +29,8 @@ public class MarketviewFragment extends Fragment {
     private DataViewModel mData;
     private Observer<ArrayList<Crypto>> cryptoObserver;
     private MutableLiveData<ArrayList<Crypto>> cryptosLD;
+    private ArrayList<Crypto> cryptos;
+    private MarketRecyclerViewAdapter recyclerViewAdapter;
 
 
     //Create new instance of the fragment here instead of using a custom constructor
@@ -41,26 +43,36 @@ public class MarketviewFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
+        cryptos = mData.getCryptos().getValue();
+        System.out.println(TAG + " onCreate: cryptos length is " + cryptos.size());
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
 
-        mBinding = MarketviewFragmentBinding.inflate(inflater, container, false);
+        if (mBinding == null) {
+            mBinding = MarketviewFragmentBinding.inflate(inflater, container, false);
+        }
 
-        //showLoadingScreen();
+        showLoadingScreen();
 
-        mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
-
+        cryptosLD = mData.getCryptos();
         cryptoObserver = new Observer<ArrayList<Crypto>>() {
             @Override
-            public void onChanged(ArrayList<Crypto> cryptos) {
-                setRecyclerView();
-                //showMainScreen();
+            public void onChanged(ArrayList<Crypto> updatedCryptos) {
+                System.out.println(TAG + " onChanged: updatedCryptos length is " + updatedCryptos.size());
+                if (updatedCryptos.size() > 0) {
+                    cryptos.clear();
+                    cryptos.addAll(updatedCryptos);
+                    setRecyclerView();
+                    showMainScreen();
+                } else { //must have been error, try to refresh data again
+                    mData.refreshCryptos(getContext());
+                }
             }
         };
-        cryptosLD = mData.getCryptos();
         cryptosLD.observe(this, cryptoObserver);
 
         return mBinding.getRoot();
@@ -76,14 +88,13 @@ public class MarketviewFragment extends Fragment {
     }
 
     private void setRecyclerView() {
-        if (mBinding.recyclerView.getAdapter() == null) {
-            MarketRecyclerViewAdapter adapter = new MarketRecyclerViewAdapter(getContext(), mData.getCryptos().getValue(), (MainActivity) getContext());
-            mBinding.recyclerView.setAdapter(adapter);
+        if (recyclerViewAdapter == null) {
+            System.out.println(TAG + " Setting new recyclerview adapter");
+            recyclerViewAdapter = new MarketRecyclerViewAdapter(getContext(), cryptos, (MainActivity) getContext());
+            mBinding.recyclerView.setAdapter(recyclerViewAdapter);
             mBinding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         } else {
-            MarketRecyclerViewAdapter adapter = (MarketRecyclerViewAdapter)(mBinding.recyclerView.getAdapter());
-            adapter.updateCryptos(mData.getCryptos().getValue());
-            adapter.notifyDataSetChanged();
+            recyclerViewAdapter.notifyDataSetChanged();
         }
     }
 
