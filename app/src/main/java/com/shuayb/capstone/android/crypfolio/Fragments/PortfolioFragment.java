@@ -22,6 +22,12 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -36,6 +42,8 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.shuayb.capstone.android.crypfolio.AddPortfolioItemActivity;
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.PortfolioRecyclerViewAdapter;
+import com.shuayb.capstone.android.crypfolio.DataUtils.JsonUtils;
+import com.shuayb.capstone.android.crypfolio.DataUtils.NetworkUtils;
 import com.shuayb.capstone.android.crypfolio.DataUtils.RandomUtils;
 import com.shuayb.capstone.android.crypfolio.DataViewModel;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
@@ -79,8 +87,8 @@ public class PortfolioFragment extends Fragment
     private ListenerRegistration portfolioListenerFb;
     private Context mContext;
     private DocumentSnapshot lastResult;
-    MutableLiveData<ArrayList<Crypto>> cryptoLD;
-    Observer<ArrayList<Crypto>> cryptoObserver;
+    private MutableLiveData<ArrayList<Crypto>> cryptoLD;
+    private Observer<ArrayList<Crypto>> cryptoObserver;
     private int appWidgetId;
 
     List<AuthUI.IdpConfig> providers = Arrays.asList(
@@ -106,7 +114,11 @@ public class PortfolioFragment extends Fragment
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        mBinding = PortfolioFragmentBinding.inflate(inflater, container, false);
+        System.out.println("Creating view for " + TAG);
+        if (mBinding == null) {
+            mBinding = PortfolioFragmentBinding.inflate(inflater, container, false);
+        }
+
         showLoadingScreen();
 
         mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
@@ -138,7 +150,7 @@ public class PortfolioFragment extends Fragment
 
             mBinding.signInPrompt.setVisibility(View.GONE);
             mBinding.mainContentContainer.setVisibility(View.VISIBLE);
-            fetchPortfolioInfo();
+            //fetchPortfolioInfo();
         }
 
         mBinding.signInPrompt.setOnClickListener(new View.OnClickListener(){
@@ -217,6 +229,7 @@ public class PortfolioFragment extends Fragment
     //Helper method to process data on a DB change event
     private void onDbChangeEvent(DocumentSnapshot result) {
         lastResult = result;
+        System.out.println("The DB change event result is a map with size " + result.getData().size() + "!!!!!!!!!!!!");
         generatePortfolioItems(result.getData());
     }
 
@@ -254,9 +267,11 @@ public class PortfolioFragment extends Fragment
         double amount;
         double avgPrice;
         double currentPrice;
-
         StringBuilder ids = new StringBuilder("");
 
+        //Loop through firebase portfolio items, convert each to a PortfolioItem object
+        //(which will still be missing some info) and store it in a new Map (id, PortfolioItem)
+        //Also generate ids String which is needed for the API call
         for (String key: dataMap.keySet()) {
             List<Double> list = (ArrayList<Double>)(dataMap.get(key));
             id = key;
@@ -277,33 +292,42 @@ public class PortfolioFragment extends Fragment
 
         //Look up the price info for our portfolio items (if any)
         if (ids.length() > 0) {
+            RequestQueue mRequestQueue = Volley.newRequestQueue(mContext);
 
-            mData.refreshPortfolioItems(mContext, ids.toString());
-            final MutableLiveData<ArrayList<Crypto>> portfolioItemsMoreDetailsLD = mData.getPortfolioItemsMoreDetails();
-            mData.clearPortfolioItemsMoreDetails();
-            portfolioItemsMoreDetailsLD.observe(this, new Observer<ArrayList<Crypto>>() {
-                        @Override
-                        public void onChanged(ArrayList<Crypto> portfolioItemsMoreDetails) {
-                            if (portfolioItemsMoreDetails.size() > 0) {
-                                portfolioItemsMoreDetailsLD.removeObserver(this);
-                                portfolioItems = new ArrayList<>();
-
-                                //Combine details from Map and list above to generate full Portfolio Item list (using map because its O(n))
-                                for (Crypto c : portfolioItemsMoreDetails) {
-                                    PortfolioItem item = mapItems.get(c.getId());
-                                    if (item != null) {
-                                        item.setName(c.getName());
-                                        item.setImage(c.getImage());
-                                        item.setCurrentPrice(c.getCurrentPrice());
-                                        portfolioItems.add(item);
-                                    }
-                                }
-
-                                //Now we have all the info needed, we can finish setting up / updating the views
-                                setViews();
-                            }
+            StringRequest mStringRequest = new StringRequest(Request.Method.GET,
+                    NetworkUtils.getUrlForPortfolioData(ids.toString()), new Response.Listener<String>() {
+                @Override
+                public void onResponse(String response) {
+                    Log.d(TAG, "refreshPortfolio: onResponse got this data: " + response);
+                    ArrayList<Crypto> updatedPortfolioData = (JsonUtils.convertJsonToCryptoList(response));
+                    System.out.println("refreshPortfolio onResponse!!!!!!!  The updated data array is length " + updatedPortfolioData.size());
+                    System.out.println("The map length is " + mapItems.size());
+                    portfolioItems = new ArrayList<>();
+                    //Combine details from Map and list above to generate full Portfolio Item list (using map because its O(n))
+                    for (Crypto c : updatedPortfolioData) {
+                        PortfolioItem item = mapItems.get(c.getId());
+                        if (item != null) {
+                            item.setName(c.getName());
+                            item.setImage(c.getImage());
+                            item.setCurrentPrice(c.getCurrentPrice());
+                            portfolioItems.add(item);
                         }
-                    });
+                    }
+                    //Now we have all the info needed, we can finish setting up / updating the views
+                    System.out.println("Portfolio items is now length " + portfolioItems.size());
+                    setViews();
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e(TAG, "Volley Error in refreshPortfolioItemsMoreDetails!!!!!!!! " + error.toString());
+                    Toast.makeText(mContext, "Could not get updated portfolio data", Toast.LENGTH_SHORT);
+                }
+            });
+            mRequestQueue.add(mStringRequest);
+        } else {
+            portfolioItems = new ArrayList<>();
+            setViews();
         }
     }
 
@@ -351,6 +375,7 @@ public class PortfolioFragment extends Fragment
 
     private void registerPortfolioListener() {
         if (portfolioRef != null && portfolioListenerFb == null) {
+            System.out.println("Registering portfolio listener!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
             portfolioListenerFb = portfolioRef.addSnapshotListener(new EventListener<DocumentSnapshot>() {
                 @Override
                 public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
@@ -360,6 +385,7 @@ public class PortfolioFragment extends Fragment
                         return;
                     }
                     if (documentSnapshot.exists()) {
+                        System.out.println("The portfolio listener has registered a change event!");
                         onDbChangeEvent(documentSnapshot);
                     }
                 }
@@ -368,6 +394,7 @@ public class PortfolioFragment extends Fragment
     }
 
     private void unregisterPortfolioListener() {
+        System.out.println("Unregistering portfolio listener!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         if (portfolioListenerFb != null) {
             portfolioListenerFb.remove();
             portfolioListenerFb = null;

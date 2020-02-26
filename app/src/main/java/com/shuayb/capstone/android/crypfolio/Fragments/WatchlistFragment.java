@@ -57,7 +57,10 @@ public class WatchlistFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        mBinding = WatchlistFragmentBinding.inflate(inflater, container, false);
+        if (mBinding == null) {
+            mBinding = WatchlistFragmentBinding.inflate(inflater, container, false);
+        }
+
         showLoadingScreen();
         mDb = AppDatabase.getInstance(mContext);
         mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);

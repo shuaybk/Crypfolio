@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity
                         });
                         //TODO - set sleep time back to variable refreshTime
                         //Thread.sleep(refreshTime);
-                        Thread.sleep(5000);
+                        Thread.sleep(50000);
                     }
                 } catch (InterruptedException e) {
                     Log.w(TAG, "Error trying to refresh data in thread: " + e.toString());

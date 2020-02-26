@@ -126,6 +126,7 @@ public class AddPortfolioItemActivity extends AppCompatActivity
         resultIntent.putExtra(KEY_AMOUNT, amount);
         resultIntent.putExtra(KEY_PURCHASE_PRICE, purchasePrice);
         setResult(Activity.RESULT_OK, resultIntent);
+        System.out.println("Finished activity " + TAG + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         finish();
     }
 

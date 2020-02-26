@@ -22,7 +22,7 @@ public class DataViewModel extends ViewModel {
 
     private final String TAG = this.getClass().getSimpleName();
     private MutableLiveData<ArrayList<Crypto>> cryptos;
-    private MutableLiveData<ArrayList<Crypto>> portfolioItemsMoreDetails;
+    //private MutableLiveData<ArrayList<Crypto>> portfolioItemsMoreDetails;
 
 
     public MutableLiveData<ArrayList<Crypto>> getCryptos() {
@@ -32,7 +32,7 @@ public class DataViewModel extends ViewModel {
         }
         return cryptos;
     }
-
+/*
     public MutableLiveData<ArrayList<Crypto>> getPortfolioItemsMoreDetails() {
         if (portfolioItemsMoreDetails == null) {
             portfolioItemsMoreDetails = new MutableLiveData<>();
@@ -40,12 +40,14 @@ public class DataViewModel extends ViewModel {
         }
         return portfolioItemsMoreDetails;
     }
+*/
 
+/*
     public void clearPortfolioItemsMoreDetails() {
         portfolioItemsMoreDetails = new MutableLiveData<>();
         portfolioItemsMoreDetails.setValue(new ArrayList<Crypto>());
     }
-
+*/
     public void refreshCryptos(final Context context) {
         RequestQueue mRequestQueue = Volley.newRequestQueue(context);
 
@@ -71,8 +73,8 @@ public class DataViewModel extends ViewModel {
         });
         mRequestQueue.add(mStringRequest);
     }
-
-    public void refreshPortfolioItems(final Context context, String ids) {
+/*
+    public void refreshPortfolioItemsMoreDetails(final Context context, String ids) {
         RequestQueue mRequestQueue = Volley.newRequestQueue(context);
 
         StringRequest mStringRequest = new StringRequest(Request.Method.GET,
@@ -94,12 +96,12 @@ public class DataViewModel extends ViewModel {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                Log.e(TAG, "Volley Error in refreshPortfolioItems!!!!!!!! " + error.toString());
+                Log.e(TAG, "Volley Error in refreshPortfolioItemsMoreDetails!!!!!!!! " + error.toString());
             }
         });
         mRequestQueue.add(mStringRequest);
     }
-
+*/
     @Override
     protected void onCleared() {
         super.onCleared();
