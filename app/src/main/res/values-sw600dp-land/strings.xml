@@ -1,5 +1,5 @@
 <resources>
-    <string name="isTabletLandscape">false</string>
+    <string name="isTabletLandscape">true</string>
     <string name="app_name">Crypfolio</string>
     <string name="tab_markets_title">Markets</string>
     <string name="tab_portfolio_title">Portfolio</string>
@@ -45,5 +45,4 @@
     <string name="key_refresh_time">key_refresh_time</string>
     <string name="appwidget_text">Click to sign in!</string>
     <string name="add_widget">Add widget</string>
-
 </resources>

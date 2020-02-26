@@ -179,6 +179,10 @@ public class MainActivity extends AppCompatActivity
                 .detach(detailsFragment)
                 .commit();
 
+        if (getString(R.string.isTabletLandscape).equals("true")) {
+            setSecondFragmentForTablet();
+        }
+
         //If widget didn't start the app, go to MarketView
         //Otherwise go to Portfolio
         if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
@@ -218,7 +222,22 @@ public class MainActivity extends AppCompatActivity
         } else if (currFrag instanceof PortfolioFragment) {
             setPortfolioFragmentViews();
         } else if (currFrag instanceof DetailsFragment) {
-            setDetailsFragmentViews();
+            if (getString(R.string.isTabletLandscape).equals("true")) {
+                if (lastFragmentDisplayed == FRAG_MARKETVIEW) {
+                    setMarketviewFragment();
+                } else if (lastFragmentDisplayed == FRAG_WATCHLIST) {
+                    setWatchlistFragment();
+                } else if (lastFragmentDisplayed == FRAG_PORTFOLIO) {
+                    setPortfolioFragment();
+                } else {
+                    setMarketviewFragment();
+                }
+            } else {
+                setDetailsFragmentViews();
+            }
+        }
+
+        if (getString(R.string.isTabletLandscape).equals("true")) {
         }
     }
 
@@ -330,6 +349,23 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    private void setSecondFragmentForTablet() {
+        FragmentManager fm = getSupportFragmentManager();
+
+        detailsFragment = DetailsFragment.newInstance(null);
+        fm.beginTransaction()
+                .add(R.id.frag_second, detailsFragment)
+                .commit();
+    }
+
+    private void resetSecondFragmentForTablet() {
+        FragmentManager fm = getSupportFragmentManager();
+
+        fm.beginTransaction().detach(detailsFragment)
+                .attach(detailsFragment)
+                .commit();
+    }
+
     //Helper method that sets the correct value for lastFragmentDisplayed
     private void setValueOfLastFragmentDisplayed(FragmentManager fm) {
         Fragment fragment = fm.findFragmentById(R.id.frag_main);
@@ -372,8 +408,13 @@ public class MainActivity extends AppCompatActivity
 
     private void setDetailsFragment(Crypto crypto) {
         detailsFragment.updateCrypto(crypto);
-        setFragment(detailsFragment);
-        setDetailsFragmentViews();
+
+        if (getString(R.string.isTabletLandscape).equals("false")) {
+            setFragment(detailsFragment);
+            setDetailsFragmentViews();
+        } else {
+            resetSecondFragmentForTablet();
+        }
     }
 
 
