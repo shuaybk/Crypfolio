@@ -42,11 +42,16 @@ public class MainActivity extends AppCompatActivity
     private static final String KEY_BUNDLE_WATCHLIST_FRAGMENT = "watchlist_fragment";
     private static final String KEY_BUNDLE_PORTFOLIO_FRAGMENT = "portfolio_fragment";
     private static final String KEY_BUNDLE_DETAILS_FRAGMENT = "details_fragment";
+    private static final String KEY_BUNDLE_DETAILS_FRAGMENT_SECOND = "details_fragment_second";
     private static final String KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED = "last_fragment";
     private static final String KEY_BUNDLE_TOP_TAB_POS = "top_tab_position";
     private static final String KEY_BUNDLE_BOTTOM_TAB_POS = "bottom_tab_position";
     private static final String KEY_BUNDLE_PREV_BOTTOM_TAB_POS = "previous_bottom_tab_position";
     private static final String KEY_BUNDLE_APPWIDGET_ID = "appwidget_id";
+    private static final String KEY_BUNDLE_LAST_CRYPTO_DETAILS = "last_crypto_details";
+
+    private static final String TAG_DETAILS_FRAG_MAIN = "main_details_frag";
+    private static final String TAG_DETAILS_FRAG_SECOND = "second_details_frag";
 
     private static final int FRAG_MARKETVIEW = 1;
     private static final int FRAG_WATCHLIST = 2;
@@ -59,6 +64,7 @@ public class MainActivity extends AppCompatActivity
     private WatchlistFragment watchlistFragment;
     private PortfolioFragment portfolioFragment;
     private DetailsFragment detailsFragment;
+    private DetailsFragment detailsFragmentSecond;
     private Thread refreshThread;
     private DataViewModel mData;
     private int prevBottomTabPos = 0;
@@ -82,6 +88,7 @@ public class MainActivity extends AppCompatActivity
         }
         setCryptoDataObservers();
     }
+
 
     //The observer onChanged method gets called right away on attached
     //regardless of whether or not the data actually changed
@@ -151,7 +158,7 @@ public class MainActivity extends AppCompatActivity
         marketviewFragment = MarketviewFragment.newInstance();
         watchlistFragment = WatchlistFragment.newInstance();
         portfolioFragment = PortfolioFragment.newInstance(appWidgetId);
-        detailsFragment = DetailsFragment.newInstance(null);
+        detailsFragment = DetailsFragment.newInstance();
 
         //Attach and detach all fragments so they are in the fragment manager
         //This manages their lifecycle automatically
@@ -199,18 +206,24 @@ public class MainActivity extends AppCompatActivity
         watchlistFragment = (WatchlistFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_WATCHLIST_FRAGMENT);
         portfolioFragment = (PortfolioFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_PORTFOLIO_FRAGMENT);
         detailsFragment = (DetailsFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_DETAILS_FRAGMENT);
+        detailsFragmentSecond = (DetailsFragment)fm.getFragment(savedInstanceState, KEY_BUNDLE_DETAILS_FRAGMENT_SECOND); //might be null
+
 
         lastFragmentDisplayed = savedInstanceState.getInt(KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED);
         int topTabPosition = savedInstanceState.getInt(KEY_BUNDLE_TOP_TAB_POS);
         int bottomTabPosition = savedInstanceState.getInt(KEY_BUNDLE_BOTTOM_TAB_POS);
         prevBottomTabPos = savedInstanceState.getInt(KEY_BUNDLE_PREV_BOTTOM_TAB_POS);
         appWidgetId = savedInstanceState.getInt(KEY_BUNDLE_APPWIDGET_ID);
+        Crypto lastDetailCryptoDisplayed = savedInstanceState.getParcelable(KEY_BUNDLE_LAST_CRYPTO_DETAILS);
+        detailsFragment.updateCrypto(lastDetailCryptoDisplayed);
+
 
         setupBottomTabs(bottomTabPosition);
         setupTopTabs(topTabPosition);
 
+        //Set the current fragment to display
+        //Makes sure we don't display the details fragment as the main fragment if we are in a dual layout
         Fragment currFrag = fm.findFragmentById(R.id.frag_main);
-
         if (currFrag instanceof MarketviewFragment) {
             setMarketviewFragmentViews();
         } else if (currFrag instanceof WatchlistFragment) {
@@ -230,10 +243,12 @@ public class MainActivity extends AppCompatActivity
                 }
             } else {
                 setDetailsFragmentViews();
+                setDetailsFragment(lastDetailCryptoDisplayed);
             }
         }
 
         if (getString(R.string.isTabletLandscape).equals("true")) {
+            resetSecondFragmentForTablet(lastDetailCryptoDisplayed);
         }
     }
 
@@ -348,18 +363,46 @@ public class MainActivity extends AppCompatActivity
     private void setSecondFragmentForTablet() {
         FragmentManager fm = getSupportFragmentManager();
 
-        detailsFragment = DetailsFragment.newInstance(null);
+        detailsFragmentSecond = DetailsFragment.newInstance();
         fm.beginTransaction()
-                .add(R.id.frag_second, detailsFragment)
+                .add(R.id.frag_second, detailsFragmentSecond)
                 .commit();
     }
 
-    private void resetSecondFragmentForTablet() {
+    private void resetSecondFragmentForTablet(Crypto crypto) {
         FragmentManager fm = getSupportFragmentManager();
 
-        fm.beginTransaction().detach(detailsFragment)
-                .attach(detailsFragment)
-                .commit();
+        Fragment currSecondFrag = fm.findFragmentById(R.id.frag_second);
+        if (detailsFragmentSecond == null) {
+            System.out.println("detailsFragmentSecond is initially null");
+            if (currSecondFrag != null) {
+                System.out.println("currSecondFrag has a value");
+                detailsFragmentSecond = (DetailsFragment)currSecondFrag;
+            }  else {
+                System.out.println("currSecondFrag is null");
+                detailsFragmentSecond = DetailsFragment.newInstance();
+            }
+        } else {
+            System.out.println("detailsFragmentSecond initially has a value");
+        }
+
+        if (crypto != null) {
+            detailsFragmentSecond.updateCrypto(crypto);
+            System.out.println("The second fragment crypto isssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss " + detailsFragmentSecond.getCrypto().getId());
+        }
+
+        if (currSecondFrag != null) {
+            System.out.println("The second fragment has a value");
+            fm.beginTransaction()
+                    .detach(currSecondFrag) //To force view to reset
+                    .attach(detailsFragmentSecond)
+                    .commit();
+        } else {
+            System.out.println("The second fragment is null");
+            fm.beginTransaction()
+                    .add(R.id.frag_second, detailsFragmentSecond)
+                    .commit();
+        }
     }
 
     //Helper method that sets the correct value for lastFragmentDisplayed
@@ -403,13 +446,17 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setDetailsFragment(Crypto crypto) {
-        detailsFragment.updateCrypto(crypto);
+        FragmentManager fm = getSupportFragmentManager();
 
         if (getString(R.string.isTabletLandscape).equals("false")) {
+            System.out.println("setDetailsFragment regular viewwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww");
+            detailsFragment.updateCrypto(crypto);
             setFragment(detailsFragment);
             setDetailsFragmentViews();
         } else {
-            resetSecondFragmentForTablet();
+            System.out.println("setDetailsFragment dual viewwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww");
+            detailsFragmentSecond.updateCrypto(crypto);
+            resetSecondFragmentForTablet(crypto);
         }
     }
 
@@ -479,12 +526,21 @@ public class MainActivity extends AppCompatActivity
         getSupportFragmentManager().putFragment(outState, KEY_BUNDLE_WATCHLIST_FRAGMENT, watchlistFragment);
         getSupportFragmentManager().putFragment(outState, KEY_BUNDLE_PORTFOLIO_FRAGMENT, portfolioFragment);
         getSupportFragmentManager().putFragment(outState, KEY_BUNDLE_DETAILS_FRAGMENT, detailsFragment);
+        if (detailsFragmentSecond != null) {
+            getSupportFragmentManager().putFragment(outState, KEY_BUNDLE_DETAILS_FRAGMENT_SECOND, detailsFragmentSecond);
+        }
 
         outState.putInt(KEY_BUNDLE_LAST_FRAGMENT_DISPLAYED, lastFragmentDisplayed);
         outState.putInt(KEY_BUNDLE_TOP_TAB_POS, mBinding.tabLayoutTop.getSelectedTabPosition());
         outState.putInt(KEY_BUNDLE_BOTTOM_TAB_POS, mBinding.tabLayoutBottom.getSelectedTabPosition());
         outState.putInt(KEY_BUNDLE_PREV_BOTTOM_TAB_POS, prevBottomTabPos);
         outState.putInt(KEY_BUNDLE_APPWIDGET_ID, appWidgetId);
+
+        if (getString(R.string.isTabletLandscape).equals("false")) {
+            outState.putParcelable(KEY_BUNDLE_LAST_CRYPTO_DETAILS, detailsFragment.getCrypto());
+        } else {
+            outState.putParcelable(KEY_BUNDLE_LAST_CRYPTO_DETAILS, detailsFragmentSecond.getCrypto());
+        }
     }
 
     private void showError() {

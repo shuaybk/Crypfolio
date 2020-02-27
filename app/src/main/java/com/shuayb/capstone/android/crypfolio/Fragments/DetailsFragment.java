@@ -44,8 +44,6 @@ import java.util.List;
 public class DetailsFragment extends Fragment {
     private static final String TAG = "DetailsFragment";
     private static final String KEY_BUNDLE_CRYPTO = "crypto_key";
-    private static final String KEY_BUNDLE_CHART = "chart_key";
-    private static final String KEY_BUNDLE_FIRST_TIME = "first_time";
 
     private AppDatabase mDb;
     private DataViewModel mData;
@@ -60,11 +58,8 @@ public class DetailsFragment extends Fragment {
     private Observer<ArrayList<Crypto>> cryptoObserver;
     private MutableLiveData<ArrayList<Crypto>> cryptosLD;
 
-    public static final DetailsFragment newInstance(Crypto crypto) {
+    public static final DetailsFragment newInstance() {
         DetailsFragment f = new DetailsFragment();
-        Bundle bundle = new Bundle(1);
-        bundle.putParcelable(KEY_BUNDLE_CRYPTO, crypto);
-        f.setArguments(bundle);
         return f;
     }
 
@@ -76,13 +71,6 @@ public class DetailsFragment extends Fragment {
 
         mDb = AppDatabase.getInstance(mContext);
         mData = ViewModelProviders.of(getActivity()).get(DataViewModel.class);
-
-
-        if (savedInstanceState != null) {
-            chart = savedInstanceState.getParcelable(KEY_BUNDLE_CHART);
-            crypto = savedInstanceState.getParcelable(KEY_BUNDLE_CRYPTO);
-            newCrypto = savedInstanceState.getBoolean(KEY_BUNDLE_FIRST_TIME);
-        }
 
         if (crypto != null) {
             setHasOptionsMenu(true);
@@ -99,7 +87,6 @@ public class DetailsFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        crypto = getArguments().getParcelable(KEY_BUNDLE_CRYPTO);
         mContext = getContext();
     }
 
@@ -147,12 +134,16 @@ public class DetailsFragment extends Fragment {
         newCrypto = true;
     }
 
+    public Crypto getCrypto() {
+        return crypto;
+    }
+
     //Helper method to initialize the views with crypto information
     private void initViews(boolean firstTime, boolean setChartToo) {
         if (setChartToo) {
             setChart(firstTime);
         }
-        mBinding.symbolText.setText(crypto.getSymbol().toUpperCase());
+        mBinding.symbolText.setText(crypto.getName() + " (" + crypto.getSymbol().toUpperCase() + ")");
         mBinding.priceText.setText("$" + RandomUtils.getFormattedCurrencyAmount(crypto.getCurrentPrice()));
         mBinding.marketcapText.setText("Market Cap: " + crypto.getFormattedMarketcapFull());
         mBinding.high24hText.setText("High 24h: " + crypto.getHigh24h());
@@ -162,7 +153,6 @@ public class DetailsFragment extends Fragment {
         mBinding.athText.setText("ATH: " + crypto.getAth() + " on " + crypto.getAthDate());
         mBinding.lastUpdatedText.setText("Last Updated: " + crypto.getLastUpdated());
 
-        getActivity().setTitle(crypto.getName());
         //Don't wait for the chart to load too or we might be waiting a long time
         //if we run out of our allotted API calls
         showMainScreen();
@@ -296,9 +286,6 @@ public class DetailsFragment extends Fragment {
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelable(KEY_BUNDLE_CHART, chart);
-        outState.putParcelable(KEY_BUNDLE_CRYPTO, crypto);
-        outState.putBoolean(KEY_BUNDLE_FIRST_TIME, newCrypto);
     }
 
 
