@@ -89,15 +89,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setAds() {
-        MobileAds.initialize(this, new OnInitializationCompleteListener() {
-            @Override
-            public void onInitializationComplete(InitializationStatus initializationStatus) {
-                AdRequest adRequest = new AdRequest.Builder()
-                        .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-                        .build();
-                mBinding.adView.loadAd(adRequest);
-            }
-        });
+        MobileAds.initialize(this, "ca-app-pub-3940256099942544~3347511713");
     }
 
     //The observer onChanged method gets called right away on attached
