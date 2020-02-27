@@ -27,6 +27,7 @@ import com.google.android.gms.ads.initialization.OnInitializationCompleteListene
 import com.google.android.material.tabs.TabLayout;
 import com.shuayb.capstone.android.crypfolio.CustomAdapters.MarketRecyclerViewAdapter;
 
+import com.shuayb.capstone.android.crypfolio.DataUtils.RandomUtils;
 import com.shuayb.capstone.android.crypfolio.Fragments.DetailsFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.MarketviewFragment;
 import com.shuayb.capstone.android.crypfolio.Fragments.PortfolioFragment;
@@ -89,7 +90,9 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setAds() {
-        MobileAds.initialize(this, "ca-app-pub-3940256099942544~3347511713");
+        MobileAds.initialize(this, getString(R.string.admob_app_id));
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mBinding.adView.loadAd(adRequest);
     }
 
     //The observer onChanged method gets called right away on attached
@@ -460,10 +463,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onSupportNavigateUp(){
         if (lastFragmentDisplayed == FRAG_WATCHLIST) {
-            mBinding.tabLayoutBottom.getTabAt(1).select();
+            mBinding.tabLayoutTop.getTabAt(1).select();
             setWatchlistFragment();
         } else {
-            mBinding.tabLayoutBottom.getTabAt(0).select();
+            mBinding.tabLayoutTop.getTabAt(0).select();
             setMarketviewFragment();
         }
         return true;

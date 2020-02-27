@@ -451,10 +451,10 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onSupportNavigateUp(){
         if (lastFragmentDisplayed == FRAG_WATCHLIST) {
-            mBinding.tabLayoutBottom.getTabAt(1).select();
+            mBinding.tabLayoutTop.getTabAt(1).select();
             setWatchlistFragment();
         } else {
-            mBinding.tabLayoutBottom.getTabAt(0).select();
+            mBinding.tabLayoutTop.getTabAt(0).select();
             setMarketviewFragment();
         }
         return true;
