@@ -3,6 +3,8 @@
 
 
     <!-- Admob stuff -->
+
+    <!--  Test ad IDs     -->
     <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
     <string name="main_banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
 
