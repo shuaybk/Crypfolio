@@ -73,6 +73,7 @@
             android:minWidth="100dp"
             android:layout_marginStart="10dp"
             android:textSize="14sp"
+            android:hint="@string/purchasePrice_hint"
             app:layout_constraintStart_toEndOf="@id/price_label"
             app:layout_constraintTop_toTopOf="@id/price_label" />
 

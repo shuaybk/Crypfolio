@@ -7,5 +7,5 @@
         android:icon="@android:drawable/btn_star_big_off"
         android:orderInCategory="1"
         app:showAsAction="always"
-        android:title="Add to Watchlist" />
+        android:title="@string/watchlist_button_title" />
 </menu>

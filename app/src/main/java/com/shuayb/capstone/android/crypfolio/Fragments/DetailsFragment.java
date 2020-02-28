@@ -111,7 +111,7 @@ public class DetailsFragment extends Fragment {
                     }
 
                 } else {
-                    Toast.makeText(mContext, "Couldn't update details for this crypto", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mContext, getString(R.string.error_toast1), Toast.LENGTH_SHORT).show();
                 }
             }
         };
@@ -145,13 +145,13 @@ public class DetailsFragment extends Fragment {
         }
         mBinding.symbolText.setText(crypto.getName() + " (" + crypto.getSymbol().toUpperCase() + ")");
         mBinding.priceText.setText("$" + RandomUtils.getFormattedCurrencyAmount(crypto.getCurrentPrice()));
-        mBinding.marketcapText.setText("Market Cap: " + crypto.getFormattedMarketcapFull());
-        mBinding.high24hText.setText("High 24h: " + crypto.getHigh24h());
-        mBinding.low24hText.setText("Low 24h: " + crypto.getLow24h());
-        mBinding.circSupplyText.setText("Circulating Supply: " + crypto.getCircSupply());
-        mBinding.totalSupplyText.setText("Total Supply: " + crypto.getTotalSupply());
-        mBinding.athText.setText("ATH: " + crypto.getAth() + " on " + crypto.getAthDate());
-        mBinding.lastUpdatedText.setText("Last Updated: " + crypto.getLastUpdated());
+        mBinding.marketcapText.setText(getString(R.string.details_market_cap) + ": " + crypto.getFormattedMarketcapFull());
+        mBinding.high24hText.setText(getString(R.string.details_high) + " 24h: " + crypto.getHigh24h());
+        mBinding.low24hText.setText(getString(R.string.details_low) + " 24h: " + crypto.getLow24h());
+        mBinding.circSupplyText.setText(getString(R.string.details_circ_supply) + ": " + crypto.getCircSupply());
+        mBinding.totalSupplyText.setText(getString(R.string.details_total_supply) + ": " + crypto.getTotalSupply());
+        mBinding.athText.setText("ATH: " + crypto.getAth() + " - " + crypto.getAthDate());
+        mBinding.lastUpdatedText.setText(getString(R.string.details_last_updated) + ": " + crypto.getLastUpdated());
 
         //Don't wait for the chart to load too or we might be waiting a long time
         //if we run out of our allotted API calls

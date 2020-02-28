@@ -249,7 +249,7 @@ public class PortfolioFragment extends Fragment
                             mBinding.signInPrompt.setVisibility(View.GONE);
                             mBinding.mainContentContainer.setVisibility(View.GONE);
                             mBinding.errorMessage.setVisibility(View.VISIBLE);
-                            Toast.makeText(getContext(), "Error: Could not fetch Portfolio", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getContext(), getString(R.string.error_toast3), Toast.LENGTH_LONG).show();
                             showMainScreen(); //This main screen includes the above error view
                         }
                     }
@@ -320,7 +320,7 @@ public class PortfolioFragment extends Fragment
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     Log.e(TAG, "Volley Error in refreshPortfolioItemsMoreDetails!!!!!!!! " + error.toString());
-                    Toast.makeText(mContext, "Could not get updated portfolio data", Toast.LENGTH_SHORT);
+                    Toast.makeText(mContext, getString(R.string.error_toast4), Toast.LENGTH_SHORT).show();
                 }
             });
             mRequestQueue.add(mStringRequest);
@@ -364,7 +364,7 @@ public class PortfolioFragment extends Fragment
                                 portfolioRef.set(data);
                             }
                         } else {
-                            Toast.makeText(getContext(), "Error adding Portfolio item", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), getString(R.string.error_toast5), Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -378,7 +378,6 @@ public class PortfolioFragment extends Fragment
                 @Override
                 public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
                     if (e != null) {
-                        Toast.makeText(getContext(), "Error on DB listener event", Toast.LENGTH_LONG);
                         Log.w(TAG, e.toString());
                         return;
                     }
@@ -461,7 +460,7 @@ public class PortfolioFragment extends Fragment
                     //refresh all views
                     initViews();
                 } else {
-                    Toast.makeText(getContext(), "Unable to sign in!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.error_toast6), Toast.LENGTH_SHORT).show();
                     Log.w(TAG, "Authentication failed!!!");
                 }
                 break;
@@ -477,7 +476,6 @@ public class PortfolioFragment extends Fragment
                 } else if (resultCode == RESULT_CANCELED) {
                     //Do nothing, this is fine
                 } else {
-                    Toast.makeText(getContext(), "Unexpected result!", Toast.LENGTH_SHORT).show();
                     Log.w(TAG, "Add Portfolio item activity returned an unexpected result.  requestCode = " + requestCode);
                 }
                 break;
@@ -507,7 +505,7 @@ public class PortfolioFragment extends Fragment
     @Override
     public void onDeleteClicked(final PortfolioItem item) {
         dismissDialog();
-        Toast.makeText(mContext, "Deleting - one moment...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(mContext, getString(R.string.toast_deleting), Toast.LENGTH_SHORT).show();
 
         portfolioRef.get()
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {

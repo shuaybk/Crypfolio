@@ -14,6 +14,7 @@ import androidx.fragment.app.DialogFragment;
 
 import com.shuayb.capstone.android.crypfolio.DataUtils.RandomUtils;
 import com.shuayb.capstone.android.crypfolio.DatabaseUtils.Crypto;
+import com.shuayb.capstone.android.crypfolio.R;
 import com.shuayb.capstone.android.crypfolio.databinding.AddPortfolioItemFragmentBinding;
 
 public class AddPortfolioItemFragment extends DialogFragment {
@@ -79,7 +80,7 @@ public class AddPortfolioItemFragment extends DialogFragment {
                     double purchasePrice = Double.parseDouble(mBinding.priceEditText.getText().toString());
                     mCallback.onSubmitPressed(crypto.getId(), amount, purchasePrice);
                 } catch (Exception e) {
-                    Toast.makeText(getContext(), "Invalid entries - try again", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), getString(R.string.error_toast2), Toast.LENGTH_SHORT).show();
                 }
             }
         });
