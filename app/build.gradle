@@ -2,6 +2,14 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('..\\capstone_test_keystore.jks')
+            storePassword 'test123'
+            keyAlias = 'key0'
+            keyPassword 'test123'
+        }
+    }
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.shuayb.capstone.android.crypfolio"
@@ -15,6 +23,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 
