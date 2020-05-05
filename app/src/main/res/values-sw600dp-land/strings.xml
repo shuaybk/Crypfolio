@@ -3,11 +3,13 @@
 
 
     <!-- Admob stuff -->
+    <string name="admob_app_id">ca-app-pub-6540693995683100~3868707372</string>
+    <string name="main_banner_ad_id">ca-app-pub-6540693995683100/8055719614</string>
 
-    <!--  Test ad IDs     -->
+    <!--  Test ad IDs
     <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
     <string name="main_banner_ad_id">ca-app-pub-3940256099942544/6300978111</string>
-
+    -->
 
     <string name="app_name">Crypfolio</string>
     <string name="tab_markets_title">Markets</string>

@@ -1,6 +1,7 @@
 package com.shuayb.capstone.android.crypfolio.CustomAdapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +24,7 @@ import java.util.HashMap;
 public class PortfolioRecyclerViewAdapter
         extends RecyclerView.Adapter<PortfolioRecyclerViewAdapter.ViewHolder>{
 
-    private static final String TAG = "PortfolioRecyclerViewAdapter";
+    private static final String TAG = "PortRecyclerViewAdapter";
 
     private ArrayList<PortfolioItem> portfolioItems;
     private Context mContext;
@@ -59,9 +60,12 @@ public class PortfolioRecyclerViewAdapter
 
         PortfolioItem item = portfolioItems.get(position);
 
+
         String netChange = RandomUtils.getNetChangeAmount(item.getAmount(), item.getAvgPrice(), item.getCurrentPrice())
                 + " (" + RandomUtils.getNetChangePercentage(item.getAmount(), item.getAvgPrice(), item.getCurrentPrice())
                 + ")";
+
+        String colour = RandomUtils.getChangeColour(item.getAvgPrice(), item.getCurrentPrice());
 
         String amountPrice = RandomUtils.roundToReasonableValue(item.getAmount()) + " | "
                 + "$" + RandomUtils.getFormattedCurrencyAmount(item.getCurrentPrice());
@@ -70,6 +74,17 @@ public class PortfolioRecyclerViewAdapter
         holder.nameText.setText(item.getName());
         holder.priceTotalText.setText("$" + RandomUtils.getFormattedCurrencyAmount(item.getCurrentPrice()*item.getAmount()));
         holder.netChangeText.setText(netChange);
+        //Determine colour (green for gains, red for losses, grey for neutral
+        if (colour.equals(RandomUtils.COLOUR_GREEN)) {
+            holder.netChangeText.setTextColor(mContext.getResources().getColor(R.color.gain_green));
+        } else if (colour.equals(RandomUtils.COLOUR_RED)) {
+            holder.netChangeText.setTextColor(mContext.getResources().getColor(R.color.loss_red));
+        } else if (colour.equals(RandomUtils.COLOUR_GREY)) {
+            holder.netChangeText.setTextColor(mContext.getResources().getColor(R.color.default_text_colour));
+        } else {
+            Log.w(TAG, "Text colour for gains/losses got unexpected value!");
+        }
+
         holder.amountPriceText.setText(amountPrice);
     }
 

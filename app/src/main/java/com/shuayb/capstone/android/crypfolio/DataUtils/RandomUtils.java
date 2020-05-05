@@ -4,6 +4,10 @@ import java.text.DecimalFormat;
 
 public class RandomUtils {
 
+    public static final String COLOUR_GREEN = "green";
+    public static final String COLOUR_RED = "red";
+    public static final String COLOUR_GREY = "grey";
+
     public static String getFormattedCurrencyAmount(double price) {
         String result;
 
@@ -74,6 +78,7 @@ public class RandomUtils {
         return result;
     }
 
+    //TO DO: Don't need the amount to calculate this (cancels out), fix it
     public static String getNetChangePercentage(double amount, double initialPrice, double currPrice) {
         double initialValue = amount * initialPrice;
         double currValue = amount * currPrice;
@@ -88,6 +93,18 @@ public class RandomUtils {
         }
 
         return result;
+    }
+
+    //Return the colour to use (green for gains, red for losses, grey for neutral)
+    public static String getChangeColour(double initialPrice, double currPrice) {
+        double netChange = currPrice/initialPrice - 1;
+
+        if (netChange > 0) {
+            return COLOUR_GREEN;
+        } else if (netChange < 0) {
+            return COLOUR_RED;
+        }
+        return COLOUR_GREY;
     }
 
 }

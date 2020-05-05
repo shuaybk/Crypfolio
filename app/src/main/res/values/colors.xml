@@ -6,4 +6,7 @@
     <color name="lightGrey">#E7E7E7</color>
     <color name="medGrey">#CBCBCB</color>
     <color name="black">#000000</color>
+    <color name="gain_green">#0CB300</color>
+    <color name="loss_red">#FF0000</color>
+    <color name="default_text_colour">#808080</color>
 </resources>
