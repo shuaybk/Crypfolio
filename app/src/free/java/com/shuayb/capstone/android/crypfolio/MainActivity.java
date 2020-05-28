@@ -43,6 +43,10 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = "MainActivity";
 
+    private static final String TITLE_MAIN = "Crypfolio";
+    private static final String TITLE_MARKETVIEW = "Market Overview";
+    private static final String TITLE_PORTFOLIO = "Portfolio";
+
     private static final String KEY_BUNDLE_MARKETVIEW_FRAGMENT = "marketview_fragment";
     private static final String KEY_BUNDLE_WATCHLIST_FRAGMENT = "watchlist_fragment";
     private static final String KEY_BUNDLE_PORTFOLIO_FRAGMENT = "portfolio_fragment";
@@ -478,6 +482,7 @@ public class MainActivity extends AppCompatActivity
 
         //Hide the back button if it was shown
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setTitle(TITLE_MARKETVIEW);
     }
 
     private void setPortfolioFragmentViews() {
@@ -486,6 +491,7 @@ public class MainActivity extends AppCompatActivity
 
         //Hide the back button if it was shown
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setTitle(TITLE_PORTFOLIO);
     }
 
     private void setWatchlistFragmentViews() {
@@ -494,6 +500,7 @@ public class MainActivity extends AppCompatActivity
 
         //Hide the back button if it was shown
         getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setTitle(TITLE_MARKETVIEW);
     }
 
     private void setDetailsFragmentViews() {
@@ -502,6 +509,9 @@ public class MainActivity extends AppCompatActivity
 
         //Enable the back button
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getString(R.string.isTabletLandscape).equals("false")) {
+            getSupportActionBar().setTitle(TITLE_MAIN);
+        }
     }
 
     //Set behavior of actionbar back button
